@@ -1,9 +1,7 @@
-import { H3Event } from "h3"
-import { User } from "@prisma/client"
-import { nanoid } from "nanoid"
 import prisma from "~/prisma/prisma"
+import { nanoid } from "nanoid"
 
-export async function postUser(event: H3Event): Promise<User | string> {
+export default defineEventHandler(async (event) => {
   let token
   token = nanoid(10)
 
@@ -21,4 +19,4 @@ export async function postUser(event: H3Event): Promise<User | string> {
   setResponseStatus(event, 201)
 
   return user
-}
+})
