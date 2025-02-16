@@ -34,15 +34,14 @@ import { NButton } from 'naive-ui'
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
 }
 
 .vote-section-container {
   display: flex;
+  flex-grow: 1;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
 }
 
 .center-cards-display {
@@ -64,6 +63,7 @@ import { NButton } from 'naive-ui'
 
 .vote-bar {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 </style>
