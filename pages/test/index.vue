@@ -7,12 +7,12 @@
       </h1>
       <div class="center-cards-display">
         <div class="vote-card-grid">
-          <VoteCard :shouldShow="true" value="10" />
+          <VoteCard :shouldShow="true" :value="cardValue" />
         </div>
       </div>
       <NButton type="primary" color="#000000" text-color="#FFFFFF">Ready</NButton>
     </div>
-    <VoteBar class="vote-bar" />
+    <VoteBar class="vote-bar" @cardValue="setCardValue" />
   </div>
 
 
@@ -20,6 +20,20 @@
 
 <script setup lang="ts">
 import { NButton } from 'naive-ui'
+import { onMounted, ref } from 'vue'
+
+onMounted(() => {
+  console.log('Mounted')
+  const userToken = localStorage.getItem('userToken')
+  console.log(userToken)
+})
+
+const cardValue = ref('')
+
+function setCardValue(value: string) {
+  cardValue.value = value
+}
+
 </script>
 
 <style>
