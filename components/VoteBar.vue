@@ -1,18 +1,7 @@
 <template>
   <NFlex align="center" justify="center" size="small" :vertical="true">
-    <NFloatButton shape="square" height="60" width="60" position="relative" >
-      Teste
-    </NFloatButton>
-    <NFloatButton shape="square" height="60" width="60" position="relative">Peste</NFloatButton>
-    <NFloatButton shape="square" height="60" width="60" position="relative">
-      <NIcon><Balloon /></NIcon>
-    </NFloatButton>
-    <NFloatButton shape="square" height="60" width="60" position="relative">
-      Teste
-    </NFloatButton>
-    <NFloatButton shape="square" height="60" width="60" position="relative">Peste</NFloatButton>
-    <NFloatButton shape="square" height="60" width="60" position="relative">
-      <NIcon><Balloon /></NIcon>
+    <NFloatButton shape="square" height="60" width="60" position="relative" v-for="value in values" :key="value">
+      {{ value }}
     </NFloatButton>
   </NFlex>
 </template>
@@ -20,10 +9,14 @@
 <script setup lang="ts">
 import { NFloatButton, NIcon, NFlex } from 'naive-ui';
 import { Balloon } from '@vicons/ionicons5';
+
+// Make values reactive due to users choice of values (fibonnaci, custom and others)
+// We can store them in a store like pinia
+const values = [1, 2, 3, 5, 8, 13, 21]
 </script>
 
 <style>
 .n-float-button {
-  font-size: small;
+  font-size: 16px;
 }
 </style>
