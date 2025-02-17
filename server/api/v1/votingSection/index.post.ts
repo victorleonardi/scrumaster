@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     return "Bad request"
   }
 
-  const section = await prisma.section.create({
+  const votingSection = await prisma.votingSection.create({
     data: {
       userToken: body.userToken,
       projectId: body.projectId,
@@ -16,5 +16,5 @@ export default defineEventHandler(async (event) => {
   })
 
   setResponseStatus(event, 201)
-  return section
+  return votingSection
 })

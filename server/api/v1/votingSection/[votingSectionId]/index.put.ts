@@ -2,17 +2,17 @@ import prisma from "~/prisma/prisma";
 
 // Update votes related to section
 export default defineEventHandler(async (event) => {
-  const sectionId = event.context.params?.sectionId
+  const votingSectionId = event.context.params?.votingSectionId
   const body = await readBody(event)
 
-  if (!sectionId || !body.userToken || !body.votes) {
+  if (!votingSectionId || !body.userToken || !body.votes) {
     setResponseStatus(event, 400)
     return "Bad request"
   }
 
-  const section = await prisma.section.update({
+  const section = await prisma.votingSection.update({
     where: {
-      id: Number(sectionId)
+      id: Number(votingSectionId)
     },
     data: {
       votes: body.votes

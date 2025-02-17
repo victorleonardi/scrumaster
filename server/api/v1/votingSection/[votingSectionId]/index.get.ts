@@ -1,14 +1,14 @@
 import prisma from "~/prisma/prisma";
 
 export default defineEventHandler(async (event) => {
-  const sectionId = event.context.params?.sectionId
+  const votingSectionId = event.context.params?.votingSectionId
 
-  if (!sectionId) {
+  if (!votingSectionId) {
     setResponseStatus(event, 400)
     return "Bad request"
   }
 
-  const section = await prisma.section.findUnique({ where: { id: Number(sectionId) } })
+  const section = await prisma.votingSection.findUnique({ where: { id: Number(votingSectionId) } })
 
   if (!section) {
     setResponseStatus(event, 404)
