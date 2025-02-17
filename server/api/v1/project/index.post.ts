@@ -2,7 +2,7 @@ import prisma from "~/prisma/prisma";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  if (!body.name || !body.userId) {
+  if (!body.name || !body.userToken) {
     setResponseStatus(event, 400)
     return "Bad request"
   }
@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const project = await prisma.project.create({
     data: {
       name: body.name,
-      userId: body.userId
+      userToken: body.userToken
     }
   })
 

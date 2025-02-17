@@ -2,7 +2,7 @@ import prisma from "~/prisma/prisma";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  if (!body.cardValue || !body.sectionId) {
+  if (!body.cardValue || !body.votingSectionId || !body.userToken) {
     setResponseStatus(event, 400)
     return "Bad request"
   }
@@ -10,7 +10,8 @@ export default defineEventHandler(async (event) => {
   const vote = await prisma.vote.create({
     data: {
       cardValue: body.cardValue,
-      sectionId: body.sectionId
+      votingSectionId: body.votingSectionId,
+      userToken: body.userToken,
     }
   })
 

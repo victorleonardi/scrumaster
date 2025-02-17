@@ -6,13 +6,13 @@ export default defineEventHandler(async (event) => {
   token = nanoid(10)
 
   // TODO: Create func to encapsule token matching
-  if (await prisma.user.findUnique({ where: { user_token: token } })) {
+  if (await prisma.user.findUnique({ where: { userToken: token } })) {
     token = nanoid(10)
   }
 
   const user = await prisma.user.create({
     data: {
-      user_token: token
+      userToken: token
     }
   })
 
