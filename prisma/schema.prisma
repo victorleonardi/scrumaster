@@ -4,6 +4,11 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// Revisit models. It must make sense but now it's a bit confusing
+// Vote may probably make reference to user as well as round or section
+
+// Define what is a section, what is a project, what is a user and others.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,31 +19,32 @@ datasource db {
 }
 
 model User {
-  id         Int       @id @default(autoincrement())
-  user_token String    @unique
-  projects   Project[]
-  sections   Section[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id             Int             @id @default(autoincrement())
+  userToken      String          @unique
+  projects       Project[]
+  votingSections VotingSection[]
+  votes          Vote[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@map("users")
 }
 
 model Project {
-  id        Int       @id @default(autoincrement())
-  name      String
-  User      User?     @relation(fields: [userId], references: [id])
-  userId    Int?
-  sections  Section[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id             Int             @id @default(autoincrement())
+  name           String
+  User           User?           @relation(fields: [userToken], references: [userToken])
+  userToken      String?
+  votingSections VotingSection[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@map("projects")
 }
 
-model Section {
+model VotingSection {
   id        Int      @id @default(autoincrement())
-  User      User?    @relation(fields: [userToken], references: [user_token])
+  User      User?    @relation(fields: [userToken], references: [userToken])
   userToken String?
   Project   Project? @relation(fields: [projectId], references: [id])
   projectId Int?
@@ -46,16 +52,18 @@ model Section {
   updatedAt DateTime @updatedAt
   votes     Vote[]
 
-  @@map("sections")
+  @@map("votingSections")
 }
 
 model Vote {
-  id Int @id @default(autoincrement())
-  cardValue Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Section   Section? @relation(fields: [sectionId], references: [id])
-  sectionId Int?
+  id              Int            @id @default(autoincrement())
+  cardValue       Int
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  VotingSection   VotingSection? @relation(fields: [votingSectionId], references: [id])
+  votingSectionId Int?
+  User            User?          @relation(fields: [userToken], references: [userToken])
+  userToken       String?
 
   @@map("votes")
 }
