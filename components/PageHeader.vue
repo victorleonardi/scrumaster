@@ -20,14 +20,21 @@ import { NButton } from 'naive-ui'
 <style>
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem 3rem;
 }
 
 .logo {
   width: 50px;
   height: 50px;
+}
+
+.central-menu {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .login-container {
