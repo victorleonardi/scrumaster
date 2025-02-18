@@ -7,10 +7,10 @@
       </h1>
       <div class="center-cards-display">
         <div class="vote-card-grid">
-          <VoteCard :shouldShow="true" :value="cardValue" />
+          <VoteCard :shouldShow="shouldShow" :value="cardValue" />
         </div>
       </div>
-      <NButton type="primary" color="#000000" text-color="#FFFFFF">Ready</NButton>
+      <NButton @click="shouldShow = !shouldShow" type="primary" color="#000000" text-color="#FFFFFF">Ready</NButton>
     </div>
     <VoteBar class="vote-bar" @cardValue="setCardValue" />
   </div>
@@ -22,17 +22,41 @@
 import { NButton } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 
+const shouldShow = ref(false)
+const cardValue = ref()
+const userToken = ref()
+
 onMounted(() => {
   console.log('Mounted')
-  const userToken = localStorage.getItem('userToken')
-  console.log(userToken)
+  userToken.value = localStorage.getItem('userToken')
 })
 
-const cardValue = ref('')
+
+// Create a ref to store cardValue from VoteBar component
+// when user click at voteBar button, then stores
+// its id locally. If the votingSection isn't finished, the user can
+// change his vote value using this id stored.
 
 function setCardValue(value: string) {
   cardValue.value = value
 }
+
+async function createVote() {
+  // Create vote
+  // Store vote id locally
+
+  const res = await $fetch('/api/v1/vote', {
+    method: 'POST',
+    body: {
+      cardValue: cardValue.value,
+      votingSectionId: 1, //Change when we have the votingSectionId
+      userToken: userToken.value
+    }
+  })
+}
+
+// should only POST vote when every one at the votingSection has voted
+// So we should check every sec if the votingSection is finished
 
 </script>
 
