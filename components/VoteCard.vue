@@ -10,12 +10,12 @@
 import { defineProps, computed, } from 'vue';
 
 const props = defineProps<{
-  value: string
+  value?: number
   shouldShow: boolean
 }>()
 
 console.log(props)
-const hasValue = computed(() => props.value !== undefined)
+const hasValue = computed(() => props?.value !== undefined)
 
 console.log(hasValue)
 
