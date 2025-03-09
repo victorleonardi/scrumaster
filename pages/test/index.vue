@@ -21,7 +21,9 @@
 <script setup lang="ts">
 import { NButton } from 'naive-ui'
 import { onMounted, ref } from 'vue'
+import { io, type Socket } from 'socket.io-client'
 
+const socket = ref<Socket>()
 const shouldShow = ref(false)
 const cardValue = ref()
 const userToken = ref()
@@ -29,6 +31,11 @@ const userToken = ref()
 onMounted(() => {
   console.log('Mounted')
   userToken.value = localStorage.getItem('userToken')
+  socket.value = io({
+    path: '/socket'
+  })
+
+  socket.value.emit('trigger', { message: 'test', cardValue })
 })
 
 
