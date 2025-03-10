@@ -2,14 +2,14 @@
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      socketPort: 3001,
+      socketPort: 3002,
       url: 'http://localhost'
     }
   },
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   modules: ['nuxtjs-naive-ui'],
-  plugins: ['~/plugins/socket.io.client'],
+  plugins: ['~/plugins/socket.io'],
   nitro: {
     plugins: [
       './plugins/socket.io.server'
