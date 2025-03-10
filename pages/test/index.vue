@@ -21,21 +21,25 @@
 <script setup lang="ts">
 import { NButton } from 'naive-ui'
 import { onMounted, ref } from 'vue'
-import { io, type Socket } from 'socket.io-client'
+import { SocketEvent } from '~/utils/SocketEvent'
 
-const socket = ref<Socket>()
+const { $io } = useNuxtApp()
+$io.connect()
 const shouldShow = ref(false)
 const cardValue = ref()
 const userToken = ref()
 
+const state = reactive({
+  counter: 0
+})
+
+$io.on(SocketEvent.new_count, (message: any) => {
+  state.counter = message
+})
+
 onMounted(() => {
   console.log('Mounted')
   userToken.value = localStorage.getItem('userToken')
-  socket.value = io({
-    path: '/socket'
-  })
-
-  socket.value.emit('trigger', { message: 'test', cardValue })
 })
 
 
