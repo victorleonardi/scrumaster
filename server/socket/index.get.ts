@@ -1,4 +1,6 @@
-export default defineEventHandler(async (event) => {
+import { initWebSocket } from "~/utils/initWebSocket"
+
+export default defineWebSocketHandler(async (event) => {
   console.log('Init websocket')
-  initSocket(event)
+  initWebSocket(event)
 })
