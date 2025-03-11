@@ -5,6 +5,11 @@ import { SocketEvent } from "~/utils/SocketEvent";
 let count = 0
 
 export default defineNitroPlugin((nitroApp) => {
+  if (!nitroApp.h3App) {
+    console.error('Nitro H3 app is not available')
+    return
+  }
+
   const socketServer = new Server(
     useRuntimeConfig().public.socketPort, {
     serveClient: false,
@@ -16,7 +21,7 @@ export default defineNitroPlugin((nitroApp) => {
   socketServer.on('connection', (socket) => {
     socket.emit(SocketEvent.new_count, count)
 
-    socket.on(SocketEvent.up, (message: { value: number}) => {
+    socket.on(SocketEvent.up, (message: { value: number }) => {
       count += message.value
       socket.emit(SocketEvent.new_count, count)
     })
