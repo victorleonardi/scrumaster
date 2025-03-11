@@ -19,8 +19,6 @@ const emit = defineEmits(['cardValue'])
 const values = [1, 2, 3, 5, 8, 13, 21]
 
 function setCardValue(value: number) {
-  console.log(value)
-
   emit("cardValue", value)
 }
 
