@@ -5,6 +5,11 @@
       <h1 class="title">
         Aqui virá o nome do Projeto/Card
       </h1>
+      <h2>Só um teste com os valores de {{ state.counter }}</h2>
+      <div>
+        <button @click="$event => up()">up</button>
+        <button @click="$event => down()"> down</button>
+      </div>
       <div class="center-cards-display">
         <div class="vote-card-grid">
           <VoteCard :shouldShow="shouldShow" :value="cardValue" />
@@ -42,7 +47,13 @@ onMounted(() => {
   userToken.value = localStorage.getItem('userToken')
 })
 
+function up() {
+  $io.emit(SocketEvent.up, { value: 1 })
+}
 
+function down() {
+  $io.emit(SocketEvent.down, { value: 1 })
+}
 // Create a ref to store cardValue from VoteBar component
 // when user click at voteBar button, then stores
 // its id locally. If the votingSection isn't finished, the user can
