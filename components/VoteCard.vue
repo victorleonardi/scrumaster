@@ -13,12 +13,7 @@ const props = defineProps<{
   value?: number
   shouldShow: boolean
 }>()
-
-console.log(props)
 const hasValue = computed(() => props?.value !== undefined)
-
-console.log(hasValue)
-
 </script>
 
 <style>
