@@ -7,7 +7,7 @@
       </h1>
       <div class="center-cards-display">
         <div class="vote-card-grid">
-          <VoteCard :shouldShow="shouldShow" :value="cardValue" />
+          <VoteCard :value="cardValue" />
         </div>
       </div>
       <NButton type="primary" color="#000000" text-color="#FFFFFF">Ready</NButton>
