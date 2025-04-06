@@ -20,14 +20,20 @@
 <script setup lang="ts">
 import { NButton } from 'naive-ui'
 import { onMounted, ref } from 'vue'
+import { nanoid } from "nanoid"
 
 const cardValue = ref()
 const userToken = ref()
 const isReady = ref(false)
 
 onMounted(() => {
-  console.log('Mounted')
-  userToken.value = localStorage.getItem('userToken')
+  if (localStorage.getItem('userToken') === null) {
+    const firstAccessToken = nanoid(10)
+    localStorage.setItem('userToken', nanoid(10))
+    userToken.value = firstAccessToken
+  } else {
+    userToken.value = localStorage.getItem('userToken')
+  }
 })
 
 const readyButton = computed(() => {
