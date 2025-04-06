@@ -1,3 +1,5 @@
+<!-- Fix style for buttons, to make it more interesting -->
+
 <template>
   <NFlex align="center" justify="center" size="small" :vertical="true">
     <NButton @click="setCardValue(value)" shape="square" height="60" width="60" position="relative"
