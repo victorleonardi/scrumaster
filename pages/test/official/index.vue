@@ -27,13 +27,17 @@ const userToken = ref()
 const isReady = ref(false)
 
 onMounted(() => {
-  if (localStorage.getItem('userToken') === null) {
-    const firstAccessToken = nanoid(10)
+  if (!localStorage.getItem('userToken')) {
+    const firstAccessToken = $fetch('/api/v1/user', {
+      method: 'POST',
+    })
     localStorage.setItem('userToken', nanoid(10))
-    userToken.value = firstAccessToken
+    userToken.value = firstAccessToken.userToken
   } else {
     userToken.value = localStorage.getItem('userToken')
   }
+
+  console.log('userToken', userToken.value)
 })
 
 const readyButton = computed(() => {
