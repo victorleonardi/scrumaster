@@ -10,6 +10,9 @@ export default defineNitroPlugin((nitroApp) => {
     return
   }
 
+  console.log('Socket.io server started')
+  console.log('Socket.io server port:', useRuntimeConfig().public.socketPort)
+
   const socketServer = new Server(
     useRuntimeConfig().public.socketPort, {
     serveClient: false,
@@ -23,7 +26,7 @@ export default defineNitroPlugin((nitroApp) => {
 
     socket.on(SocketEvent.up, (message: { value: number }) => {
       count += message.value
-      socket.emit(SocketEvent.new_count, count)
+      socketServer.emit(SocketEvent.new_count, count)
     })
 
     socket.on(SocketEvent.down, (message: { value: number }) => {
@@ -33,3 +36,9 @@ export default defineNitroPlugin((nitroApp) => {
 
   })
 })
+
+/* Notes:
+  socket.emit() will only update the state on client side, updating for the sender only;
+  socketServer.emit() will update the state on client side and server side, updating for everyone without needing refresh;
+  socket.broadcast.emit() will update the state on client side and server side, updating for everyone except the sender;
+*/
