@@ -1,6 +1,6 @@
 <template>
   <div class="card" :class="{ 'has_value': hasValue }">
-    <p v-if="shouldShow">
+    <!-- <p v-if="shouldShow"> -->
       {{ value }}
     </p>
   </div>
@@ -11,7 +11,6 @@ import { defineProps, computed, } from 'vue';
 
 const props = defineProps<{
   value?: number
-  shouldShow: boolean
 }>()
 const hasValue = computed(() => props?.value !== undefined)
 </script>
