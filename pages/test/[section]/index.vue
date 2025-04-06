@@ -26,8 +26,19 @@ const cardValue = ref()
 const userToken = ref()
 const isReady = ref(false)
 
+// Use section route param to associate with the votingSectionId and in memory storage to use webhook
+const route = useRoute()
+const store = useStore()
+
+console.log('storage', store.state)
+
+store.addOrUpdateSection(route.params.section, '5suhbJ2DF0', 10)
+
+console.log('storage', store.state)
+
 onMounted(() => {
   if (!localStorage.getItem('userToken')) {
+    // Should I use CORS here? To avoid others exploiting the API
     const firstAccessToken = $fetch('/api/v1/user', {
       method: 'POST',
     })
@@ -43,11 +54,6 @@ onMounted(() => {
 const readyButton = computed(() => {
   return !isReady.value ? 'Ready!' : 'Wait a Minute!'
 })
-
-// Create a ref to store cardValue from VoteBar component
-// when user click at voteBar button, then stores
-// its id locally. If the votingSection isn't finished, the user can
-// change his vote value using this id stored.
 
 function setCardValue(value: string) {
   cardValue.value = value
