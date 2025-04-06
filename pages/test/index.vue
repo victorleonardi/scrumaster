@@ -83,6 +83,7 @@ async function createVote() {
 </script>
 
 <style>
+/* Move to Tailwind */
 .container {
   display: flex;
   flex-direction: row;

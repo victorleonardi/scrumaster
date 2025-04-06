@@ -27,6 +27,7 @@ function setCardValue(value: number) {
 </script>
 
 <style>
+/* Move to Tailwind */
 .n-float-button {
   font-size: 16px;
 }

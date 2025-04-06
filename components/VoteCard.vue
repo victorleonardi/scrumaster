@@ -17,6 +17,7 @@ const hasValue = computed(() => props?.value !== undefined)
 </script>
 
 <style>
+/* Move to Tailwind */
 .card {
   padding: 1rem;
   border: 1px solid #ccc;
