@@ -10,25 +10,28 @@
           <VoteCard :value="cardValue" />
         </div>
       </div>
-      <NButton type="primary" color="#000000" text-color="#FFFFFF">Ready</NButton>
+      <NButton @click="isReady = !isReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
+      </NButton>
     </div>
-    <VoteBar class="vote-bar" @cardValue="setCardValue" />
+    <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
   </div>
-
-
 </template>
 
 <script setup lang="ts">
 import { NButton } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 
-const shouldShow = ref(true)
 const cardValue = ref()
 const userToken = ref()
+const isReady = ref(false)
 
 onMounted(() => {
   console.log('Mounted')
   userToken.value = localStorage.getItem('userToken')
+})
+
+const readyButton = computed(() => {
+  return !isReady.value ? 'Ready!' : 'Wait a Minute!'
 })
 
 // Create a ref to store cardValue from VoteBar component
