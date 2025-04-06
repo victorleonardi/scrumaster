@@ -18,6 +18,7 @@ import { NButton } from 'naive-ui'
 </script>
 
 <style>
+/* Move to Tailwind */
 .header {
   display: flex;
   justify-content: center;
