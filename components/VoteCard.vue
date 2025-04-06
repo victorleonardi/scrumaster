@@ -1,6 +1,6 @@
 <template>
   <div class="card" :class="{ 'has_value': hasValue }">
-    <!-- <p v-if="shouldShow"> -->
+    <p>
       {{ value }}
     </p>
   </div>
