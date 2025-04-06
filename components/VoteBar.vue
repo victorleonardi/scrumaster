@@ -1,16 +1,21 @@
 <template>
   <NFlex align="center" justify="center" size="small" :vertical="true">
-    <NFloatButton @click="setCardValue(value)" shape="square" height="60" width="60" position="relative"
-      v-for="value in values" :key="value">
+    <NButton @click="setCardValue(value)" shape="square" height="60" width="60" position="relative"
+      v-for="value in values" :key="value" :disabled="disable">
       {{ value }}
-    </NFloatButton>
+    </NButton>
   </NFlex>
 </template>
 
 <script setup lang="ts">
-import { NFloatButton, NIcon, NFlex } from 'naive-ui';
-import { Balloon } from '@vicons/ionicons5';
+import { NFloatButton, NIcon, NFlex, NButton } from 'naive-ui';
 import { defineEmits } from "vue";
+
+const props = withDefaults(defineProps<{
+  disable?: boolean
+}>(), {
+  disable: false
+})
 
 const emit = defineEmits(['cardValue'])
 
