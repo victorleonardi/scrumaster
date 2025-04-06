@@ -2,6 +2,8 @@ import { Server } from "socket.io";
 import { SocketEvent } from "~/utils/SocketEvent";
 
 // change for database later
+// how to use it with database?
+// probably should use with pinia, than when values are set, update db
 let count = 0
 
 export default defineNitroPlugin((nitroApp) => {
