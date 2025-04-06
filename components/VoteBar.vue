@@ -29,8 +29,6 @@ function setCardValue(value: number) {
   emit("cardValue", value)
 }
 
-
-
 </script>
 
 <style>
