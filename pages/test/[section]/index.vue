@@ -87,6 +87,8 @@ Now that the most complex case works, we can create a simple one.
  and put an end to the current votingSection. That means we need to keep track of
  the votingSectionId on pinia, maybe?
 
+ We ALSO need to keep track of the number of users connected and its ids/names, to represent
+ each one on their respective card.
 */
 async function testSocket() {
   $io.emit(SocketEvent.new_vote, {
