@@ -73,6 +73,21 @@ function setCardValue(value: string) {
 
 }
 
+/*
+
+Now that the most complex case works, we can create a simple one.
+ It can be simplified to just keep track of ready state of each user connected.
+ Once all users are ready, we can send the vote to the server.
+
+ Now, to keep track of the ready state, there are two ways:
+ 1. Use a simple array to keep track of the users that are ready.
+ 2. Use an object with usersTokens as ids and a boolean as value.
+
+ Once everybody is ready, we can register the votes on the backend.
+ and put an end to the current votingSection. That means we need to keep track of
+ the votingSectionId on pinia, maybe?
+
+*/
 async function testSocket() {
   $io.emit(SocketEvent.new_vote, {
     sectionId: route.params.section,
