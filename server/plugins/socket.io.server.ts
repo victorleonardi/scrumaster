@@ -36,6 +36,11 @@ export default defineNitroPlugin((nitroApp) => {
       socketServer.emit(SocketEvent.new_count, count)
     })
 
+    socket.on(SocketEvent.new_vote, (data) => {
+      console.log('📨 Received new vote:', data)
+      socketServer.emit(SocketEvent.new_vote, data) //consider changint SocketEvent name
+    })
+
   })
 })
 
