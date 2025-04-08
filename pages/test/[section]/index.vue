@@ -10,7 +10,7 @@
           <VoteCard :value="cardValue" />
         </div>
       </div>
-      <NButton @click="isReady = !isReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
+      <NButton @click="testSocket" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
       </NButton>
     </div>
     <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
@@ -23,6 +23,10 @@
 import { NButton } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { nanoid } from "nanoid"
+import { SocketEvent } from '~/utils/SocketEvent'
+
+const { $io } = useNuxtApp()
+$io.connect()
 
 const cardValue = ref()
 const userToken = ref()
@@ -34,11 +38,11 @@ const route = useRoute()
 // Fix useStore on nuxt3
 const store = useWebsiteStore()
 
-console.log('storage', store.sections)
-
-store.addOrUpdateSection(Array.isArray(route.params.section) ? route.params.section[0] : route.params.section, '5suhbJ2DF0', 10)
-
-console.log('storage', store.sections)
+$io.emit(SocketEvent.new_vote, {
+  sectionId: route.params.section,
+  userToken: userToken.value,
+  votingSectionId: 10 //Change when we have the votingSectionId
+})
 
 onMounted(() => {
   if (!localStorage.getItem('userToken')) {
@@ -66,6 +70,20 @@ function setCardValue(value: string) {
     return
   }
   cardValue.value = value
+
+}
+
+async function testSocket() {
+  $io.emit(SocketEvent.new_vote, {
+    sectionId: route.params.section,
+    userToken: userToken.value,
+    voteValue: cardValue.value//Change when we have the votingSectionId
+  })
+  console.log('testSocket', cardValue.value)
+  console.log('userToken', userToken.value)
+  console.log('sectionId', route.params.section)
+
+  isReady.value = !isReady.value
 }
 
 async function createVote() {
