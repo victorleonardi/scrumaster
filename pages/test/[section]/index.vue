@@ -15,6 +15,8 @@
     </div>
     <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
   </div>
+
+  <h2>{{ userToken }}</h2>
 </template>
 
 <script setup lang="ts">
@@ -28,13 +30,15 @@ const isReady = ref(false)
 
 // Use section route param to associate with the votingSectionId and in memory storage to use webhook
 const route = useRoute()
-const store = useStore()
 
-console.log('storage', store.state)
+// Fix useStore on nuxt3
+const store = useWebsiteStore()
 
-store.addOrUpdateSection(route.params.section, '5suhbJ2DF0', 10)
+console.log('storage', store.sections)
 
-console.log('storage', store.state)
+store.addOrUpdateSection(Array.isArray(route.params.section) ? route.params.section[0] : route.params.section, '5suhbJ2DF0', 10)
+
+console.log('storage', store.sections)
 
 onMounted(() => {
   if (!localStorage.getItem('userToken')) {
@@ -55,7 +59,12 @@ const readyButton = computed(() => {
   return !isReady.value ? 'Ready!' : 'Wait a Minute!'
 })
 
+// Create focus to be passed as prop
 function setCardValue(value: string) {
+  if (cardValue.value === value) {
+    cardValue.value = null
+    return
+  }
   cardValue.value = value
 }
 
