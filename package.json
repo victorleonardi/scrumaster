@@ -14,6 +14,7 @@
     "prisma:migrate:reset": "npx prisma migrate reset"
   },
   "dependencies": {
+    "@pinia/nuxt": "^0.10.1",
     "@prisma/client": "^6.1.0",
     "nanoid": "^5.0.9",
     "nuxt": "^3.15.0",
