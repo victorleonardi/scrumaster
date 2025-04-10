@@ -16,11 +16,12 @@ export default defineNuxtPlugin(() => {
   });
 
   const websiteStore = useWebsiteStore()
-  //consider changint SocketEvent name
-  socket.on(SocketEvent.new_vote, (message: { sectionId: string, userToken: string, voteValue: number }) => {
-    console.log('new_vote', message)
-    const { sectionId, userToken, voteValue } = message
-    websiteStore.addOrUpdateSection(sectionId, userToken, voteValue)
+
+  socket.on(SocketEvent.newVote, (message: { userToken: string, isReady: boolean }) => {
+    console.log('newVote', message)
+    const { userToken, isReady } = message
+    if (isReady) websiteStore.newReady(userToken)
+    else websiteStore.waitAMinute(userToken)
   })
 
 
