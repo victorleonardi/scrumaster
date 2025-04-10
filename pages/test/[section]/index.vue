@@ -49,6 +49,11 @@ onMounted(() => {
   }
 
   console.log('userToken', userToken.value)
+
+  // currently, it does not show all the available users. I need to update it
+  $io.emit(SocketEvent.joinProject, {
+    userToken: userToken.value,
+  })
 })
 
 const readyButton = computed(() => {
@@ -87,18 +92,6 @@ async function getReady() {
   console.log("test new socket events")
   isReady.value = !isReady.value
   $io.emit(SocketEvent.isReady, { userToken: userToken.value, isReady: isReady.value })
-}
-async function testSocket() {
-  $io.emit(SocketEvent.newVote, {
-    sectionId: route.params.section,
-    userToken: userToken.value,
-    voteValue: cardValue.value
-  })
-  console.log('testSocket', cardValue.value)
-  console.log('userToken', userToken.value)
-  console.log('sectionId', route.params.section)
-
-  isReady.value = !isReady.value
 }
 
 async function createVote() {
