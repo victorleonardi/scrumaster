@@ -10,7 +10,7 @@
           <VoteCard :value="cardValue" />
         </div>
       </div>
-      <NButton @click="testSocket" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
+      <NButton @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
       </NButton>
     </div>
     <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
@@ -32,17 +32,9 @@ const cardValue = ref()
 const userToken = ref()
 const isReady = ref(false)
 
-// Use section route param to associate with the votingSectionId and in memory storage to use webhook
 const route = useRoute()
 
-// Fix useStore on nuxt3
 const store = useWebsiteStore()
-
-$io.emit(SocketEvent.new_vote, {
-  sectionId: route.params.section,
-  userToken: userToken.value,
-  votingSectionId: 10 //Change when we have the votingSectionId
-})
 
 onMounted(() => {
   if (!localStorage.getItem('userToken')) {
@@ -90,11 +82,17 @@ Now that the most complex case works, we can create a simple one.
  We ALSO need to keep track of the number of users connected and its ids/names, to represent
  each one on their respective card.
 */
+
+async function getReady() {
+  console.log("test new socket events")
+  isReady.value = !isReady.value
+  $io.emit(SocketEvent.isReady, { userToken: userToken.value, isReady: isReady.value })
+}
 async function testSocket() {
-  $io.emit(SocketEvent.new_vote, {
+  $io.emit(SocketEvent.newVote, {
     sectionId: route.params.section,
     userToken: userToken.value,
-    voteValue: cardValue.value//Change when we have the votingSectionId
+    voteValue: cardValue.value
   })
   console.log('testSocket', cardValue.value)
   console.log('userToken', userToken.value)
