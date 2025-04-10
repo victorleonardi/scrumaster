@@ -24,7 +24,13 @@ export default defineNuxtPlugin(() => {
     else websiteStore.waitAMinute(userToken)
   })
 
-
+  socket.on(SocketEvent.updateUsers, (message: { userToken: string }) => {
+    console.log('updateUsers', message)
+    const { userToken } = message
+    if (!websiteStore.users.includes(userToken)) {
+      websiteStore.addUser(userToken)
+    }
+  })
 
   return {
     provide: {
