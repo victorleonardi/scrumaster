@@ -1,5 +1,8 @@
+import type { User } from "@prisma/client"
+
 export const useWebsiteStore = defineStore('websiteStore', {
   state: () => ({
+    users: [] as string[],
     usersReady: {} as Record<string, boolean>
   }),
   actions: {
@@ -9,7 +12,14 @@ export const useWebsiteStore = defineStore('websiteStore', {
 
     waitAMinute(userToken: string) {
       this.usersReady[userToken] = false
+    },
+
+    addUser(userToken: string) {
+      if (this.users.includes(userToken)) return
+      this.users.push(userToken)
     }
+
+
     // addOrUpdateSection(sectionId: string, userToken: string, voteValue: number) {
     //   this.sections[sectionId] ??= {}; // check if the section exists, if not create it
     //   this.sections[sectionId][userToken] = voteValue;
