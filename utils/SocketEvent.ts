@@ -1,6 +1,5 @@
 export enum SocketEvent {
-  up = 'up',
-  down = 'down',
-  new_count = 'new_count',
-  new_vote = 'new_vote',
+  isReady = 'isReady',
+  newVote = 'newVote',
+  joinProject = 'joinProject', // would be the same as joinRoom. Later, create an event to leaveRoom
 }
