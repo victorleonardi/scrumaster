@@ -4,6 +4,8 @@ import { SocketEvent } from "~/utils/SocketEvent";
 // change for database later
 // how to use it with database?
 // probably should use with pinia, than when values are set, update db
+// I can build a connection string to the database and use it here. we don't have to know on front
+// if everybody is ready
 
 export default defineNitroPlugin((nitroApp) => {
   if (!nitroApp.h3App) {
@@ -32,6 +34,10 @@ export default defineNitroPlugin((nitroApp) => {
       socketServer.emit(SocketEvent.newVote, message)
     })
 
+    socket.on(SocketEvent.joinProject, (message: { userToken: string }) => {
+      console.log('📨 Join Project', message)
+      socketServer.emit(SocketEvent.updateUsers, message)
+    })
   })
 })
 
