@@ -4,7 +4,6 @@ import { SocketEvent } from "~/utils/SocketEvent";
 // change for database later
 // how to use it with database?
 // probably should use with pinia, than when values are set, update db
-let count = 0
 
 export default defineNitroPlugin((nitroApp) => {
   if (!nitroApp.h3App) {
@@ -23,22 +22,14 @@ export default defineNitroPlugin((nitroApp) => {
     }
   })
 
+  // Maybe, to isolate between sessions, I can use an event called projectId,
+  // and connect the socket to the projectId, so it will be unique for each session
+  // like socketServer.on(${projectId}, ...)
+
   socketServer.on('connection', (socket) => {
-    socket.emit(SocketEvent.new_count, count)
-
-    socket.on(SocketEvent.up, (message: { value: number }) => {
-      count += message.value
-      socketServer.emit(SocketEvent.new_count, count)
-    })
-
-    socket.on(SocketEvent.down, (message: { value: number }) => {
-      count -= message.value
-      socketServer.emit(SocketEvent.new_count, count)
-    })
-
-    socket.on(SocketEvent.new_vote, (data) => {
-      console.log('📨 Received new vote:', data)
-      socketServer.emit(SocketEvent.new_vote, data) //consider changint SocketEvent name
+    socket.on(SocketEvent.isReady, (message: { userToken: string, isReady: boolean }) => {
+      console.log('📨 Is it Ready?', message)
+      socketServer.emit(SocketEvent.newVote, message)
     })
 
   })
