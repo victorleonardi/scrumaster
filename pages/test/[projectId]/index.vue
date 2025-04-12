@@ -46,10 +46,10 @@ const projectId = route.params.projectId
 
 const store = useWebsiteStore()
 
-onMounted(() => {
+onMounted(async () => {
   if (!localStorage.getItem('userToken')) {
     // Should I use CORS here? To avoid others exploiting the API
-    const firstAccessToken = $fetch('/api/v1/user', {
+    const firstAccessToken = await $fetch('/api/v1/user', {
       method: 'POST',
     })
     localStorage.setItem('userToken', nanoid(10))
