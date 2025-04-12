@@ -40,17 +40,26 @@ export default defineNitroPlugin((nitroApp) => {
       if (!roomsState[projectId]) return; //Probably throw an error here
       roomsState[projectId][userToken] = isReady
 
-      socketServer.emit(SocketEvent.newVote, message)
+      
     })
     // Try first withou async events.
-    socket.on(SocketEvent.joinProject, (projectId: string) => {
-      console.log('📨 Join Project Room', projectId)
+    socket.on(SocketEvent.joinProject, (message: { projectId: string, userToken: string }) => {
+      const { projectId, userToken } = message
+      console.log(`📨 User ${userToken} Join Project ${projectId} Room`, projectId)
+
+      if (!roomsState[projectId]) return; //Probably throw an error here
+      // By Default, isReady must be false
+      roomsState[projectId][userToken] = false
 
       socket.join(projectId)
     })
 
-    socket.on(SocketEvent.leaveProject, (projectId: string) => {
-      console.log('📨 Leave Project Room', projectId)
+    socket.on(SocketEvent.leaveProject, (message: { projectId: string, userToken: string }) => {
+      const { projectId, userToken } = message
+      console.log(`📨 User ${userToken} Leave Project ${projectId} Room`, projectId)
+
+      if (!roomsState[projectId]) return; //Probably throw an error here
+      delete roomsState[projectId][userToken]
 
       socket.leave(projectId)
     })
