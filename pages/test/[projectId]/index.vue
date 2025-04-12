@@ -60,7 +60,6 @@ onMounted(async () => {
 
   console.log('userToken', userToken.value)
 
-  // currently, it does not show all the available users. I need to update it
   $io.emit(SocketEvent.joinProject, {
     projectId,
     userToken: userToken.value,
