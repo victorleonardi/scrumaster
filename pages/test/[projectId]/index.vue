@@ -7,8 +7,10 @@
       </h1>
       <div class="center-cards-display">
         <div v-for="user in usersInRoom">
-          <VoteCard />
-          <p>{{ user }}</p>
+          <div v-show="user != userToken">
+            <VoteCard />
+            <p>{{ user }}</p>
+          </div>
         </div>
         <div class="vote-card-grid">
           <VoteCard :value="cardValue" />
@@ -28,6 +30,7 @@ import { NButton } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { nanoid } from "nanoid"
 import { SocketEvent } from '~/utils/SocketEvent'
+import { Socket } from 'socket.io-client'
 
 const { $io } = useNuxtApp()
 $io.connect()
@@ -64,8 +67,13 @@ onMounted(() => {
   })
 })
 
+$io.on(SocketEvent.updateUsersInRoom, (newUsersInRoom: string[]) => {
+  console.log('Users in room', newUsersInRoom)
+  usersInRoom.value = new Set(newUsersInRoom)
+})
+
 $io.on(SocketEvent.newUser, (newUser) => {
-  console.log('userConnected', newUser)
+  console.log('New User Connected', newUser)
   usersInRoom.value.add(newUser)
 })
 
