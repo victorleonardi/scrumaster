@@ -24,10 +24,6 @@ export default defineNitroPlugin((nitroApp) => {
     }
   })
 
-  // Maybe, to isolate between sessions, I can use an event called projectId,
-  // and connect the socket to the projectId, so it will be unique for each session
-  // like socketServer.on(${projectId}, ...)
-
   socketServer.on('connection', (socket) => {
     console.log('User successfully connected to socket!')
 
