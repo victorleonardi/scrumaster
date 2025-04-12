@@ -1,19 +1,24 @@
 <template>
   <PageHeader />
-  <div class="container">
+  <div class="major-container">
     <div class="vote-section-container">
       <h1 class="title">
         Aqui virá o nome do Projeto/Card
       </h1>
       <div class="center-cards-display">
-        <div v-for="user in usersInRoom">
-          <div v-show="user != userToken">
-            <VoteCard />
-            <p>{{ user }}</p>
+        <!-- Must improve html and style from here -->
+        <!-- Till here -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+          <div class="flex flex-col items-center">
+            <VoteCard :value="cardValue" />
+            <p>You</p>
           </div>
-        </div>
-        <div class="vote-card-grid">
-          <VoteCard :value="cardValue" />
+          <div v-for="user in usersInRoom">
+            <div class="flex flex-col items-center" v-show="user != userToken">
+              <VoteCard />
+              <p>{{ user }}</p>
+            </div>
+          </div>
         </div>
       </div>
       <NButton @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
@@ -37,6 +42,8 @@ $io.connect()
 const cardValue = ref()
 const userToken = ref()
 const isReady = ref(false)
+// probably move to an object, so we can keep
+// track of the userToken, userName and its ready state
 const usersInRoom = ref(new Set<string>())
 
 const route = useRoute()
@@ -67,6 +74,7 @@ onMounted(async () => {
 
 $io.on(SocketEvent.updateUsersInRoom, (newUsersInRoom: string[]) => {
   console.log('Users in room', newUsersInRoom)
+  console.log(newUsersInRoom)
   usersInRoom.value = new Set(newUsersInRoom)
 })
 
@@ -117,7 +125,7 @@ async function getReady() {
 
 <style>
 /* Move to Tailwind */
-.container {
+.major-container {
   display: flex;
   flex-direction: row;
   justify-content: center;
