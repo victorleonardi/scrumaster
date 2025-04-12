@@ -40,9 +40,14 @@ export default defineNitroPlugin((nitroApp) => {
       if (!roomsState[projectId]) return; //Probably throw an error here
       roomsState[projectId][userToken] = isReady
 
-      
+      if (Object.values(roomsState[projectId]).every((value) => value)) {
+        console.log('📨 All users are ready!')
+        // Emit to all users in the room
+        socketServer.to(projectId).emit(SocketEvent.allReady, { projectId, isReady })
+      }
     })
-    // Try first withou async events.
+
+    // Try first without async events.
     socket.on(SocketEvent.joinProject, (message: { projectId: string, userToken: string }) => {
       const { projectId, userToken } = message
       console.log(`📨 User ${userToken} Join Project ${projectId} Room`, projectId)
