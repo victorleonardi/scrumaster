@@ -12,7 +12,14 @@ import { SocketEvent } from "~/utils/SocketEvent";
   only make it more complicated.
 */
 
-const roomsState: Record<string, Record<string, boolean>> = {}
+interface RoomReadyState {
+  [projectId: string]: {
+    [userToken: string]: boolean
+  }
+}
+
+const roomsReadyState: RoomReadyState = {}
+const currentVotingSectionId: string = ''
 
 export default defineNitroPlugin((nitroApp) => {
   if (!nitroApp.h3App) {
@@ -37,10 +44,10 @@ export default defineNitroPlugin((nitroApp) => {
     socket.on(SocketEvent.isReady, (message: { projectId: string, userToken: string, isReady: boolean }) => {
       console.log('📨 Is it Ready?', message)
       const { projectId, userToken, isReady } = message
-      if (!roomsState[projectId]) return; //Probably throw an error here
-      roomsState[projectId][userToken] = isReady
+      if (!roomsReadyState[projectId]) return; //Probably throw an error here
+      roomsReadyState[projectId][userToken] = isReady
 
-      if (Object.values(roomsState[projectId]).every((value) => value)) {
+      if (Object.values(roomsReadyState[projectId]).every((value) => value)) {
         console.log('📨 All users are ready!')
         // Emit to all users in the room
         socketServer.to(projectId).emit(SocketEvent.allReady, { projectId, isReady })
@@ -52,10 +59,10 @@ export default defineNitroPlugin((nitroApp) => {
       const { projectId, userToken } = message
       console.log(`📨 User ${userToken} Join Project ${projectId} Room`, projectId)
 
-      if (!roomsState[projectId]) roomsState[projectId] = {}; //Probably throw an error here
+      if (!roomsReadyState[projectId]) roomsReadyState[projectId] = {}; //Probably throw an error here
       // By Default, isReady must be false
-      roomsState[projectId][userToken] = false
-      const usersInRoom = Object.keys(roomsState[projectId])
+      roomsReadyState[projectId][userToken] = false
+      const usersInRoom = Object.keys(roomsReadyState[projectId])
 
       socket.join(projectId)
       socket.emit(SocketEvent.updateUsersInRoom, usersInRoom)
@@ -67,13 +74,12 @@ export default defineNitroPlugin((nitroApp) => {
       const { projectId, userToken } = message
       console.log(`📨 User ${userToken} Leave Project ${projectId} Room`, projectId)
 
-      if (!roomsState[projectId]) return; //Probably throw an error here
-      delete roomsState[projectId][userToken]
+      if (!roomsReadyState[projectId]) return; //Probably throw an error here
+      delete roomsReadyState[projectId][userToken]
 
       socket.leave(projectId)
     })
   })
-})
 
 /* Notes:
   socket.emit() will only update the state on client side, updating for the sender only;
