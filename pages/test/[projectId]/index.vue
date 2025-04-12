@@ -1,34 +1,40 @@
 <template>
-    <PageHeader />
-    <div class="major-container">
-      <div class="vote-section-container">
-        <h1 class="title">
-          Aqui virá o nome do Projeto/Card
-        </h1>
-        <div class="center-cards-display">
-          <!-- Must improve html and style from here -->
-          <!-- Till here -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+  <PageHeader />
+  <div class="major-container">
+    <div class="vote-section-container">
+      <h1 class="title">
+        Aqui virá o nome do Projeto/Card
+      </h1>
+      <div class="center-cards-display">
+        <!-- Must improve html and style from here -->
+        <!-- Till here -->
+        <div
+          class="grid [grid-template-columns:repeat(auto-fit,minmax(160px,1fr))] gap-4 place-items-center mx-auto max-w-[640px]">
+
+
+          <!-- Você -->
+          <div class="flex flex-col items-center">
+            <VoteCard :value="cardValue" />
+            <p>You</p>
+          </div>
+
+          <!-- Demais usuários -->
+          <div v-for="user in usersInRoom" :key="user" v-show="user != userToken">
             <div class="flex flex-col items-center">
-              <VoteCard :value="cardValue" />
-              <p>You</p>
-            </div>
-            <div v-for="user in usersInRoom">
-              <div class="flex flex-col items-center" v-show="user != userToken">
-                <VoteCard />
-                <p>{{ user }}</p>
-              </div>
+              <VoteCard />
+              <p>{{ user }}</p>
             </div>
           </div>
         </div>
-        <NButton @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
-        </NButton>
       </div>
-      <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
+      <NButton @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
+      </NButton>
     </div>
+    <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
+  </div>
 
-    <h2>{{ userToken }}</h2>
-    <NButton @click="notify">Test Notification</NButton>
+  <h2>{{ userToken }}</h2>
+  <NButton @click="notify">Test Notification</NButton>
 </template>
 
 <script setup lang="ts">
