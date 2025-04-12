@@ -6,6 +6,10 @@
         Aqui virá o nome do Projeto/Card
       </h1>
       <div class="center-cards-display">
+        <div v-for="user in usersInRoom">
+          <VoteCard />
+          <p>{{ user }}</p>
+        </div>
         <div class="vote-card-grid">
           <VoteCard :value="cardValue" />
         </div>
@@ -31,6 +35,7 @@ $io.connect()
 const cardValue = ref()
 const userToken = ref()
 const isReady = ref(false)
+const usersInRoom = ref(new Set<string>())
 
 const route = useRoute()
 
@@ -57,6 +62,11 @@ onMounted(() => {
     projectId,
     userToken: userToken.value,
   })
+})
+
+$io.on(SocketEvent.newUser, (newUser) => {
+  console.log('userConnected', newUser)
+  usersInRoom.value.add(newUser)
 })
 
 const readyButton = computed(() => {
