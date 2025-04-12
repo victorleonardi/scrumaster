@@ -1,11 +1,18 @@
 import { Server } from "socket.io";
 import { SocketEvent } from "~/utils/SocketEvent";
 
-// change for database later
-// how to use it with database?
-// probably should use with pinia, than when values are set, update db
-// I can build a connection string to the database and use it here. we don't have to know on front
-// if everybody is ready
+/*
+  First, we will work with in-memory, since we won't use loadbalancers
+  or deal with so many users that we need to worry about scaling.
+  In the future, we can use Redis or other solutions to persist the data,
+  connecting with server side socket.
+
+  For now, we can ignore pinia, it won't be necessary. Or, we can use it
+  to store the readyness for each user using socket events, but it will
+  only make it more complicated.
+*/
+
+const roomsState: Record<string, Record<string, boolean>> = {}
 
 export default defineNitroPlugin((nitroApp) => {
   if (!nitroApp.h3App) {
@@ -27,8 +34,12 @@ export default defineNitroPlugin((nitroApp) => {
   socketServer.on('connection', (socket) => {
     console.log('User successfully connected to socket!')
 
-    socket.on(SocketEvent.isReady, (message: { userToken: string, isReady: boolean }) => {
+    socket.on(SocketEvent.isReady, (message: { projectId: string, userToken: string, isReady: boolean }) => {
       console.log('📨 Is it Ready?', message)
+      const { projectId, userToken, isReady } = message
+      if (!roomsState[projectId]) return; //Probably throw an error here
+      roomsState[projectId][userToken] = isReady
+
       socketServer.emit(SocketEvent.newVote, message)
     })
     // Try first withou async events.
