@@ -55,9 +55,12 @@ export default defineNitroPlugin((nitroApp) => {
       if (!roomsState[projectId]) roomsState[projectId] = {}; //Probably throw an error here
       // By Default, isReady must be false
       roomsState[projectId][userToken] = false
+      const usersInRoom = Object.keys(roomsState[projectId])
 
       socket.join(projectId)
-      socketServer.to(projectId).emit(SocketEvent.newUser, { userToken })
+      socket.emit(SocketEvent.updateUsersInRoom, usersInRoom)
+
+      socket.broadcast.to(projectId).emit(SocketEvent.newUser, { userToken })
     })
 
     socket.on(SocketEvent.leaveProject, (message: { projectId: string, userToken: string }) => {
