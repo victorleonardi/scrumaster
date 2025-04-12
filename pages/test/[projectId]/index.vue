@@ -72,7 +72,7 @@ $io.on(SocketEvent.updateUsersInRoom, (newUsersInRoom: string[]) => {
 
 $io.on(SocketEvent.newUser, (newUser) => {
   console.log('New User Connected', newUser)
-  usersInRoom.value.add(newUser)
+  usersInRoom.value.add(newUser.userToken)
 })
 
 const readyButton = computed(() => {
