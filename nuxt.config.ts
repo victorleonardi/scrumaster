@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from "@tailwindcss/vite";
+
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
@@ -8,5 +10,11 @@ export default defineNuxtConfig({
   },
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  modules: ['nuxtjs-naive-ui', '@pinia/nuxt']
+  modules: ['nuxtjs-naive-ui', '@pinia/nuxt'],
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
+  css: ['~/assets/css/main.css'],
 })
