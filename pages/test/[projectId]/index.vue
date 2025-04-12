@@ -97,10 +97,10 @@ const readyButton = computed(() => {
   return !isReady.value ? 'Ready!' : 'Wait a Minute!'
 })
 
-function notify() {
+function notify(title: string, content: string) {
   notification.error({
-    title: 'Erro',
-    content: 'Você precisa selecionar um card antes de continuar.',
+    title: title,
+    content: content,
     duration: 3000
   })
 
@@ -135,7 +135,10 @@ Now that the most complex case works, we can create a simple one.
 */
 
 async function getReady() {
-  console.log("test new socket events")
+  if (!cardValue.value) {
+    notify('Missing Value', 'Please select a value before voting')
+    return
+  }
   isReady.value = !isReady.value
   $io.emit(SocketEvent.isReady, { userToken: userToken.value, isReady: isReady.value })
 }
