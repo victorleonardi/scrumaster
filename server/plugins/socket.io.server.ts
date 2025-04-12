@@ -29,14 +29,23 @@ export default defineNitroPlugin((nitroApp) => {
   // like socketServer.on(${projectId}, ...)
 
   socketServer.on('connection', (socket) => {
+    console.log('User successfully connected to socket!')
+
     socket.on(SocketEvent.isReady, (message: { userToken: string, isReady: boolean }) => {
       console.log('📨 Is it Ready?', message)
       socketServer.emit(SocketEvent.newVote, message)
     })
 
-    socket.on(SocketEvent.joinProject, (message: { userToken: string }) => {
-      console.log('📨 Join Project', message)
-      socketServer.emit(SocketEvent.updateUsers, message)
+    socket.on(SocketEvent.joinProject, async (projectId: string) => {
+      console.log('📨 Join Project Room', projectId)
+
+      await socket.join(projectId)
+    })
+
+    socket.on(SocketEvent.leaveProject, async (projectId: string) => {
+      console.log('📨 Leave Project Room', projectId)
+
+      await socket.leave(projectId)
     })
   })
 })
