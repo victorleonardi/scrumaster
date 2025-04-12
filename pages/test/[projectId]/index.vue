@@ -34,6 +34,8 @@ const isReady = ref(false)
 
 const route = useRoute()
 
+const projectId = route.params.projectId
+
 const store = useWebsiteStore()
 
 onMounted(() => {
@@ -52,7 +54,7 @@ onMounted(() => {
 
   // currently, it does not show all the available users. I need to update it
   $io.emit(SocketEvent.joinProject, {
-    userToken: userToken.value,
+    projectId,
   })
 })
 
