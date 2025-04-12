@@ -19,7 +19,7 @@ interface RoomReadyState {
 }
 
 const roomsReadyState: RoomReadyState = {}
-const currentVotingSectionId: string = ''
+const currentVotingSectionId: string[] = []
 
 export default defineNitroPlugin((nitroApp) => {
   if (!nitroApp.h3App) {
@@ -80,6 +80,7 @@ export default defineNitroPlugin((nitroApp) => {
       socket.leave(projectId)
     })
   })
+})
 
 /* Notes:
   socket.emit() will only update the state on client side, updating for the sender only;
