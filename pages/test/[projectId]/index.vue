@@ -1,40 +1,43 @@
 <template>
-  <PageHeader />
-  <div class="major-container">
-    <div class="vote-section-container">
-      <h1 class="title">
-        Aqui virá o nome do Projeto/Card
-      </h1>
-      <div class="center-cards-display">
-        <!-- Must improve html and style from here -->
-        <!-- Till here -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-          <div class="flex flex-col items-center">
-            <VoteCard :value="cardValue" />
-            <p>You</p>
-          </div>
-          <div v-for="user in usersInRoom">
-            <div class="flex flex-col items-center" v-show="user != userToken">
-              <VoteCard />
-              <p>{{ user }}</p>
+    <PageHeader />
+    <div class="major-container">
+      <div class="vote-section-container">
+        <h1 class="title">
+          Aqui virá o nome do Projeto/Card
+        </h1>
+        <div class="center-cards-display">
+          <!-- Must improve html and style from here -->
+          <!-- Till here -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+            <div class="flex flex-col items-center">
+              <VoteCard :value="cardValue" />
+              <p>You</p>
+            </div>
+            <div v-for="user in usersInRoom">
+              <div class="flex flex-col items-center" v-show="user != userToken">
+                <VoteCard />
+                <p>{{ user }}</p>
+              </div>
             </div>
           </div>
         </div>
+        <NButton @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
+        </NButton>
       </div>
-      <NButton @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
-      </NButton>
+      <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
     </div>
-    <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
-  </div>
 
-  <h2>{{ userToken }}</h2>
+    <h2>{{ userToken }}</h2>
+    <NButton @click="notify">Test Notification</NButton>
 </template>
 
 <script setup lang="ts">
-import { NButton } from 'naive-ui'
+import { NButton, useNotification } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { nanoid } from "nanoid"
 import { SocketEvent } from '~/utils/SocketEvent'
+
+const notification = useNotification()
 
 const { $io } = useNuxtApp()
 $io.connect()
@@ -45,6 +48,7 @@ const isReady = ref(false)
 // probably move to an object, so we can keep
 // track of the userToken, userName and its ready state
 const usersInRoom = ref(new Set<string>())
+const showAlert = ref(true)
 
 const route = useRoute()
 
@@ -86,6 +90,15 @@ $io.on(SocketEvent.newUser, (newUser) => {
 const readyButton = computed(() => {
   return !isReady.value ? 'Ready!' : 'Wait a Minute!'
 })
+
+function notify() {
+  notification.error({
+    title: 'Erro',
+    content: 'Você precisa selecionar um card antes de continuar.',
+    duration: 3000
+  })
+
+}
 
 // Create focus to be passed as prop
 function setCardValue(value: string) {
