@@ -4,5 +4,5 @@ export enum SocketEvent {
   newVote = 'newVote',
   joinProject = 'joinProject',
   leaveProject = 'leaveProject',
-  updateUsers = 'updateUsers',
+  newUser = 'newUser',
 }
