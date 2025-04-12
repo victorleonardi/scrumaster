@@ -57,6 +57,7 @@ export default defineNitroPlugin((nitroApp) => {
       roomsState[projectId][userToken] = false
 
       socket.join(projectId)
+      socketServer.to(projectId).emit(SocketEvent.newUser, { userToken })
     })
 
     socket.on(SocketEvent.leaveProject, (message: { projectId: string, userToken: string }) => {
