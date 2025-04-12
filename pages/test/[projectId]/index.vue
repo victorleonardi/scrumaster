@@ -30,7 +30,6 @@ import { NButton } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { nanoid } from "nanoid"
 import { SocketEvent } from '~/utils/SocketEvent'
-import { Socket } from 'socket.io-client'
 
 const { $io } = useNuxtApp()
 $io.connect()
