@@ -96,23 +96,6 @@ async function getReady() {
   $io.emit(SocketEvent.isReady, { userToken: userToken.value, isReady: isReady.value })
 }
 
-async function createVote() {
-  // Create vote
-  // Store vote id locally
-
-  const res = await $fetch('/api/v1/vote', {
-    method: 'POST',
-    body: {
-      cardValue: cardValue.value,
-      votingSectionId: 1, //Change when we have the votingSectionId
-      userToken: userToken.value
-    }
-  })
-}
-
-// should only POST vote when every one at the votingSection has voted
-// So we should check every sec if the votingSection is finished
-
 </script>
 
 <style>
