@@ -52,7 +52,7 @@ export default defineNitroPlugin((nitroApp) => {
       const { projectId, userToken } = message
       console.log(`📨 User ${userToken} Join Project ${projectId} Room`, projectId)
 
-      if (!roomsState[projectId]) return; //Probably throw an error here
+      if (!roomsState[projectId]) roomsState[projectId] = {}; //Probably throw an error here
       // By Default, isReady must be false
       roomsState[projectId][userToken] = false
 
