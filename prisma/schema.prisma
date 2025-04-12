@@ -22,6 +22,7 @@ model User {
   id             Int              @id @default(autoincrement())
   userToken      String           @unique
   projects       UsersOnProject[]
+  Project        Project[]
   votingSections VotingSection[]
   votes          Vote[]
   createdAt      DateTime         @default(now())
@@ -45,7 +46,8 @@ model UsersOnProject {
 model Project {
   id             Int              @id @default(autoincrement())
   name           String
-  user           UsersOnProject[]
+  users          UsersOnProject[]
+  User           User?            @relation(fields: [userToken], references: [userToken])
   userToken      String?
   votingSections VotingSection[]
   createdAt      DateTime         @default(now())
