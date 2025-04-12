@@ -21,6 +21,7 @@ datasource db {
 model User {
   id             Int              @id @default(autoincrement())
   userToken      String           @unique
+  name           String?
   projects       UsersOnProject[]
   Project        Project[]
   votingSections VotingSection[]
