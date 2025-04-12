@@ -35,17 +35,17 @@ export default defineNitroPlugin((nitroApp) => {
       console.log('📨 Is it Ready?', message)
       socketServer.emit(SocketEvent.newVote, message)
     })
-
-    socket.on(SocketEvent.joinProject, async (projectId: string) => {
+    // Try first withou async events.
+    socket.on(SocketEvent.joinProject, (projectId: string) => {
       console.log('📨 Join Project Room', projectId)
 
-      await socket.join(projectId)
+      socket.join(projectId)
     })
 
-    socket.on(SocketEvent.leaveProject, async (projectId: string) => {
+    socket.on(SocketEvent.leaveProject, (projectId: string) => {
       console.log('📨 Leave Project Room', projectId)
 
-      await socket.leave(projectId)
+      socket.leave(projectId)
     })
   })
 })
