@@ -140,7 +140,7 @@ async function getReady() {
     return
   }
   isReady.value = !isReady.value
-  $io.emit(SocketEvent.isReady, { userToken: userToken.value, isReady: isReady.value })
+  $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value })
 }
 
 </script>
