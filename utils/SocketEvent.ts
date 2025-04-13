@@ -6,6 +6,7 @@ export enum SocketEvent {
   leaveProject = 'leaveProject',
 
   newUser = 'newUser',
+  userLeft = 'userLeft',
   updateUsersInRoom = 'updateUsersInRoom',
 
   vote = 'vote',
