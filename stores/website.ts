@@ -2,10 +2,15 @@ import type { User } from "@prisma/client"
 
 export const useWebsiteStore = defineStore('websiteStore', {
   state: () => ({
+    currentVotingSection: 0 as Number,
     users: [] as string[],
     usersReady: {} as Record<string, boolean>
   }),
   actions: {
+    setCurrentVotingSection(votingSectionId: Number) {
+      this.currentVotingSection = votingSectionId
+    },
+
     newReady(userToken: string) {
       this.usersReady[userToken] = true
     },
