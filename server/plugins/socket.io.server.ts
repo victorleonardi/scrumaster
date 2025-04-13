@@ -18,8 +18,20 @@ interface RoomReadyState {
   }
 }
 
+interface RoomVotingSection {
+  [projectId: string]: {
+    currentVotingSectionId: number
+  }
+}
+
+interface RoomUsers {
+  [projectId: string]: {
+    [userToken: string]: string
+  }
+}
+
 const roomsReadyState: RoomReadyState = {}
-const currentVotingSectionId: string[] = []
+const currentVotingSectionId: RoomVotingSection = {}
 
 export default defineNitroPlugin((nitroApp) => {
   if (!nitroApp.h3App) {
