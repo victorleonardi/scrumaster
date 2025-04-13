@@ -54,11 +54,14 @@ const isReady = ref(false)
 // probably move to an object, so we can keep
 // track of the userToken, userName and its ready state
 const usersInRoom = ref(new Set<string>())
+
+const currentVotingSection = ref()
+
 const showAlert = ref(true)
 
 const route = useRoute()
 
-const projectId = route.params.projectId
+const projectId = Number(route.params.projectId)
 
 const store = useWebsiteStore()
 
@@ -82,10 +85,24 @@ onMounted(async () => {
   })
 })
 
-$io.on(SocketEvent.updateUsersInRoom, (newUsersInRoom: string[]) => {
+$io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: string[]) => {
   console.log('Users in room', newUsersInRoom)
   console.log(newUsersInRoom)
   usersInRoom.value = new Set(newUsersInRoom)
+
+  if (usersInRoom.value.size === 1 && !store.$state.currentVotingSection) {
+    const votingSection = await $fetch('/api/v1/votingSection', {
+      method: 'POST',
+      body: {
+        projectId,
+        userToken: userToken.value,
+      }
+    })
+    currentVotingSection.value = votingSection.id
+    store.$state.currentVotingSection = votingSection.id
+    console.log(currentVotingSection.value)
+    console.log(store.$state.currentVotingSection)
+  }
 })
 
 $io.on(SocketEvent.newUser, (newUser) => {
