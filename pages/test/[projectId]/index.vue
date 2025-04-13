@@ -34,7 +34,6 @@
   </div>
 
   <h2>{{ userToken }}</h2>
-  <NButton @click="notify">Test Notification</NButton>
 </template>
 
 <script setup lang="ts">
