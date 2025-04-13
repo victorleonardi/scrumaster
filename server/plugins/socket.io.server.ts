@@ -91,6 +91,10 @@ export default defineNitroPlugin((nitroApp) => {
 
       socket.leave(projectId)
     })
+
+    socket.on('disconnect', () => {
+      console.log('disconnected')
+    })
   })
 })
 
