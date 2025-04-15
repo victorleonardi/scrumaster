@@ -88,7 +88,9 @@ export default defineNitroPlugin((nitroApp) => {
 
       if (!roomsReadyState[projectId]) return; //Probably throw an error here
       delete roomsReadyState[projectId][userToken]
+      const usersInRoom = Object.keys(roomsReadyState[projectId])
 
+      socket.broadcast.to(projectId).emit(SocketEvent.updateUsersInRoom, usersInRoom)
       socket.leave(projectId)
     })
 
