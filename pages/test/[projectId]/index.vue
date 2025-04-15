@@ -159,6 +159,14 @@ async function getReady() {
   $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value })
 }
 
+if (import.meta.client) {
+  window.onbeforeunload = () => {
+    console.log('User disconnected NOW')
+    $io.emit(SocketEvent.leaveProject, { projectId, userToken: userToken.value })
+    $io.disconnect()
+  }
+}
+
 </script>
 
 <style>
