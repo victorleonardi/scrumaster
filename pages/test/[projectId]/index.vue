@@ -14,14 +14,14 @@
 
           <!-- Você -->
           <div class="flex flex-col items-center">
-            <VoteCard :value="cardValue" />
+            <VoteCard :isReady="isReady" :value="cardValue" />
             <p>You</p>
           </div>
 
           <!-- Demais usuários -->
           <div v-for="user in usersInRoom" :key="user[0]" v-show="user[0] != userToken">
             <div class="flex flex-col items-center">
-              <VoteCard />
+              <VoteCard :isReady="user[1].ready" />
               <p>{{ user }}</p>
             </div>
           </div>
@@ -55,7 +55,7 @@ const isReady = ref(false)
  therefore I used a Map to store the users in the
  room and assure objects are unique.
 */
-const usersInRoom = ref(new Map<string, { ready: boolean, name: string }>())
+const usersInRoom = ref(new Map<string, { ready: boolean, name?: string }>())
 
 const currentVotingSection = ref()
 
@@ -85,7 +85,6 @@ onMounted(async () => {
   })
 })
 
-// REFACTOR due to changing newUsersInRoom schema
 $io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: {
   [userToken: string]: {
     ready: boolean;
@@ -116,6 +115,17 @@ $io.on(SocketEvent.newUser, (message: { projectId: string, userToken: string, ne
   const { projectId, userToken, newUserInfo } = message
   console.log('New User Connected', newUserInfo)
   usersInRoom.value.set(userToken, newUserInfo)
+})
+
+$io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: string, state: string, value: string | boolean }) => {
+  const { projectId, userToken, state, value } = message
+  console.log('User State Updated', state, value)
+  const existingUser = usersInRoom.value.get(userToken);
+  if (!existingUser) return
+
+  if (typeof value === 'boolean') {
+    usersInRoom.value.set(userToken, { ...existingUser, [state]: value as boolean })
+  }
 })
 
 const readyButton = computed(() => {
