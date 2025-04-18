@@ -55,7 +55,8 @@ export default defineNitroPlugin((nitroApp) => {
       const { projectId, userToken, isReady } = message
       if (!roomsUsers[projectId]) return; //Probably throw an error here
       roomsUsers[projectId][userToken].ready = isReady
-      socket.broadcast.emit(SocketEvent.isReady, message) // refactor
+      const usersInRoom = roomsUsers[projectId]
+      socket.broadcast.to(projectId).emit(SocketEvent.updateUserState, { projectId, userToken, state: 'ready', value: isReady })
 
       // Checks if all users are ready
       if (Object.values(roomsUsers[projectId]).every(user => user.ready)) {
