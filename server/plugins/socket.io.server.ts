@@ -54,8 +54,8 @@ export default defineNitroPlugin((nitroApp) => {
       console.log('📨 Is it Ready?', message)
       const { projectId, userToken, isReady } = message
       if (!roomsUsers[projectId]) return; //Probably throw an error here
+
       roomsUsers[projectId][userToken].ready = isReady
-      const usersInRoom = roomsUsers[projectId]
       socket.broadcast.to(projectId).emit(SocketEvent.updateUserState, { projectId, userToken, state: 'ready', value: isReady })
 
       // Checks if all users are ready
@@ -71,6 +71,7 @@ export default defineNitroPlugin((nitroApp) => {
       console.log(`📨 User ${userToken} Join Project ${projectId} Room`, projectId)
 
       if (!roomsUsers[projectId]) roomsUsers[projectId] = {}; //Probably throw an error here
+
       // By Default, isReady must be false
       roomsUsers[projectId][userToken] = { ready: false, name }
       const usersInRoom = roomsUsers[projectId]
@@ -86,6 +87,7 @@ export default defineNitroPlugin((nitroApp) => {
       console.log(`📨 User ${userToken} Leave Project ${projectId} Room`, projectId)
 
       if (!roomsUsers[projectId]) return; //Probably throw an error here
+
       delete roomsUsers[projectId][userToken]
       const usersInRoom = roomsUsers[projectId]
 
