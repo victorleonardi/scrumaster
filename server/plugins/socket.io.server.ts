@@ -26,8 +26,11 @@ interface RoomVotingSection {
 
 interface RoomUsers {
   [projectId: string]: {
-    [userToken: string]: string
-  }
+    [userToken: string]: {
+      ready: boolean;
+      name: string;
+    };
+  };
 }
 
 const roomsReadyState: RoomReadyState = {}
@@ -58,6 +61,7 @@ export default defineNitroPlugin((nitroApp) => {
       const { projectId, userToken, isReady } = message
       if (!roomsReadyState[projectId]) return; //Probably throw an error here
       roomsReadyState[projectId][userToken] = isReady
+      socket.broadcast.emit(SocketEvent.isReady, message)
 
       if (Object.values(roomsReadyState[projectId]).every((value) => value)) {
         console.log('📨 All users are ready!')
