@@ -84,6 +84,7 @@ onMounted(async () => {
   })
 })
 
+// REFACTOR due to changing newUsersInRoom schema
 $io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: string[]) => {
   console.log('Users in room', newUsersInRoom)
   console.log(newUsersInRoom)
@@ -104,6 +105,7 @@ $io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: string[]) => {
   }
 })
 
+// REFACTOR due to changing newUser schema
 $io.on(SocketEvent.newUser, (newUser) => {
   console.log('New User Connected', newUser)
   usersInRoom.value.add(newUser.userToken)
@@ -132,24 +134,6 @@ function setCardValue(value: string) {
 
 }
 
-/*
-
-Now that the most complex case works, we can create a simple one.
- It can be simplified to just keep track of ready state of each user connected.
- Once all users are ready, we can send the vote to the server.
-
- Now, to keep track of the ready state, there are two ways:
- 1. Use a simple array to keep track of the users that are ready.
- 2. Use an object with usersTokens as ids and a boolean as value.
-
- Once everybody is ready, we can register the votes on the backend.
- and put an end to the current votingSection. That means we need to keep track of
- the votingSectionId on pinia, maybe?
-
- We ALSO need to keep track of the number of users connected and its ids/names, to represent
- each one on their respective card.
-*/
-
 async function getReady() {
   if (!cardValue.value) {
     notify('Missing Value', 'Please select a value before voting')
@@ -157,6 +141,10 @@ async function getReady() {
   }
   isReady.value = !isReady.value
   $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value })
+}
+
+async function updateUsersReadyState() {
+
 }
 
 if (import.meta.client) {
