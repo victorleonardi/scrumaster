@@ -160,10 +160,6 @@ async function getReady() {
   $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value })
 }
 
-async function updateUsersReadyState() {
-
-}
-
 if (import.meta.client) {
   window.onbeforeunload = () => {
     $io.emit(SocketEvent.leaveProject, { projectId, userToken: userToken.value })
