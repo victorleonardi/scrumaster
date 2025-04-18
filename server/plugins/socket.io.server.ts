@@ -33,6 +33,7 @@ interface RoomUsers {
   };
 }
 
+const roomsUsers: RoomUsers = {}
 const roomsReadyState: RoomReadyState = {}
 const currentVotingSectionId: RoomVotingSection = {}
 
@@ -59,26 +60,26 @@ export default defineNitroPlugin((nitroApp) => {
     socket.on(SocketEvent.isReady, (message: { projectId: string, userToken: string, isReady: boolean }) => {
       console.log('📨 Is it Ready?', message)
       const { projectId, userToken, isReady } = message
-      if (!roomsReadyState[projectId]) return; //Probably throw an error here
-      roomsReadyState[projectId][userToken] = isReady
-      socket.broadcast.emit(SocketEvent.isReady, message)
+      if (!roomsUsers[projectId]) return; //Probably throw an error here
+      roomsUsers[projectId][userToken].ready = isReady
+      socket.broadcast.emit(SocketEvent.isReady, message) // refactor
 
-      if (Object.values(roomsReadyState[projectId]).every((value) => value)) {
+      // Checks if all users are ready
+      if (Object.values(roomsUsers[projectId]).every(user => user.ready)) {
         console.log('📨 All users are ready!')
-        // Emit to all users in the room
+        // Emit to ALL users in the room
         socketServer.to(projectId).emit(SocketEvent.allReady, { projectId, isReady })
       }
     })
 
-    // Try first without async events.
     socket.on(SocketEvent.joinProject, (message: { projectId: string, userToken: string }) => {
       const { projectId, userToken } = message
       console.log(`📨 User ${userToken} Join Project ${projectId} Room`, projectId)
 
-      if (!roomsReadyState[projectId]) roomsReadyState[projectId] = {}; //Probably throw an error here
+      if (!roomsUsers[projectId]) roomsUsers[projectId] = {}; //Probably throw an error here
       // By Default, isReady must be false
-      roomsReadyState[projectId][userToken] = false
-      const usersInRoom = Object.keys(roomsReadyState[projectId])
+      roomsUsers[projectId][userToken].ready = false
+      const usersInRoom = Object.keys(roomsUsers[projectId])
 
       socket.join(projectId)
       socket.emit(SocketEvent.updateUsersInRoom, usersInRoom)
@@ -90,9 +91,9 @@ export default defineNitroPlugin((nitroApp) => {
       const { projectId, userToken } = message
       console.log(`📨 User ${userToken} Leave Project ${projectId} Room`, projectId)
 
-      if (!roomsReadyState[projectId]) return; //Probably throw an error here
-      delete roomsReadyState[projectId][userToken]
-      const usersInRoom = Object.keys(roomsReadyState[projectId])
+      if (!roomsUsers[projectId]) return; //Probably throw an error here
+      delete roomsUsers[projectId][userToken]
+      const usersInRoom = Object.keys(roomsUsers[projectId])
 
       socket.broadcast.to(projectId).emit(SocketEvent.updateUsersInRoom, usersInRoom)
       socket.leave(projectId)
