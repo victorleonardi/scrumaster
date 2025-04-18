@@ -12,12 +12,6 @@ import { SocketEvent } from "~/utils/SocketEvent";
   only make it more complicated.
 */
 
-interface RoomReadyState {
-  [projectId: string]: {
-    [userToken: string]: boolean
-  }
-}
-
 interface RoomVotingSection {
   [projectId: string]: {
     currentVotingSectionId: number
@@ -28,13 +22,12 @@ interface RoomUsers {
   [projectId: string]: {
     [userToken: string]: {
       ready: boolean;
-      name: string;
+      name?: string;
     };
   };
 }
 
 const roomsUsers: RoomUsers = {}
-const roomsReadyState: RoomReadyState = {}
 const currentVotingSectionId: RoomVotingSection = {}
 
 export default defineNitroPlugin((nitroApp) => {
@@ -72,19 +65,19 @@ export default defineNitroPlugin((nitroApp) => {
       }
     })
 
-    socket.on(SocketEvent.joinProject, (message: { projectId: string, userToken: string }) => {
-      const { projectId, userToken } = message
+    socket.on(SocketEvent.joinProject, (message: { projectId: string, userToken: string, name: string }) => {
+      const { projectId, userToken, name } = message
       console.log(`📨 User ${userToken} Join Project ${projectId} Room`, projectId)
 
       if (!roomsUsers[projectId]) roomsUsers[projectId] = {}; //Probably throw an error here
       // By Default, isReady must be false
-      roomsUsers[projectId][userToken].ready = false
-      const usersInRoom = Object.keys(roomsUsers[projectId])
+      roomsUsers[projectId][userToken] = { ready: false, name }
+      const usersInRoom = roomsUsers[projectId]
 
       socket.join(projectId)
       socket.emit(SocketEvent.updateUsersInRoom, usersInRoom)
 
-      socket.broadcast.to(projectId).emit(SocketEvent.newUser, { userToken })
+      socket.broadcast.to(projectId).emit(SocketEvent.newUser, { projectId, userToken, newUserInfo: usersInRoom[userToken] })
     })
 
     socket.on(SocketEvent.leaveProject, (message: { projectId: string, userToken: string }) => {
@@ -93,7 +86,7 @@ export default defineNitroPlugin((nitroApp) => {
 
       if (!roomsUsers[projectId]) return; //Probably throw an error here
       delete roomsUsers[projectId][userToken]
-      const usersInRoom = Object.keys(roomsUsers[projectId])
+      const usersInRoom = roomsUsers[projectId]
 
       socket.broadcast.to(projectId).emit(SocketEvent.updateUsersInRoom, usersInRoom)
       socket.leave(projectId)

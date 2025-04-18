@@ -50,13 +50,14 @@ $io.connect()
 const cardValue = ref()
 const userToken = ref()
 const isReady = ref(false)
-// probably move to an object, so we can keep
-// track of the userToken, userName and its ready state
-const usersInRoom = ref(new Set<string>())
+
+/* A Set could not make sure objects were unique,
+ therefore I used a Map to store the users in the
+ room and assure objects are unique.
+*/
+const usersInRoom = ref(new Map<string, { ready: boolean, name: string }>())
 
 const currentVotingSection = ref()
-
-const showAlert = ref(true)
 
 const route = useRoute()
 
@@ -85,11 +86,17 @@ onMounted(async () => {
 })
 
 // REFACTOR due to changing newUsersInRoom schema
-$io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: string[]) => {
-  console.log('Users in room', newUsersInRoom)
-  console.log(newUsersInRoom)
-  usersInRoom.value = new Set(newUsersInRoom)
+$io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: {
+  [userToken: string]: {
+    ready: boolean;
+    name: string;
+  }
+}) => {
+  usersInRoom.value = new Map(Object.entries(newUsersInRoom))
 
+  /* Checks if there is only one user in the room
+  and if there is no voting section created yet
+  */
   if (usersInRoom.value.size === 1 && !store.$state.currentVotingSection) {
     const votingSection = await $fetch('/api/v1/votingSection', {
       method: 'POST',
@@ -100,15 +107,15 @@ $io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: string[]) => {
     })
     currentVotingSection.value = votingSection.id
     store.$state.currentVotingSection = votingSection.id
-    console.log(currentVotingSection.value)
-    console.log(store.$state.currentVotingSection)
+    // console.log(currentVotingSection.value)
+    // console.log(store.$state.currentVotingSection)
   }
 })
 
-// REFACTOR due to changing newUser schema
-$io.on(SocketEvent.newUser, (newUser) => {
-  console.log('New User Connected', newUser)
-  usersInRoom.value.add(newUser.userToken)
+$io.on(SocketEvent.newUser, (message: { projectId: string, userToken: string, newUserInfo: { ready: boolean, name: string } }) => {
+  const { projectId, userToken, newUserInfo } = message
+  console.log('New User Connected', newUserInfo)
+  usersInRoom.value.set(userToken, newUserInfo)
 })
 
 const readyButton = computed(() => {
