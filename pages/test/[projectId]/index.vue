@@ -19,7 +19,7 @@
           </div>
 
           <!-- Demais usuários -->
-          <div v-for="user in usersInRoom" :key="user" v-show="user != userToken">
+          <div v-for="user in usersInRoom" :key="user[0]" v-show="user[0] != userToken">
             <div class="flex flex-col items-center">
               <VoteCard />
               <p>{{ user }}</p>
