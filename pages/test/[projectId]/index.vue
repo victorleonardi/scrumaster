@@ -85,18 +85,22 @@ onMounted(async () => {
   })
 })
 
-$io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: {
-  [userToken: string]: {
-    ready: boolean;
-    name: string;
-  }
+$io.on(SocketEvent.updateUsersInRoom, async (message: {
+  newUsersInRoom: {
+    [userToken: string]: {
+      ready: boolean;
+      name: string;
+    }
+  },
+  currentVotingSectionId?: string
 }) => {
+  const { newUsersInRoom, currentVotingSectionId } = message
   usersInRoom.value = new Map(Object.entries(newUsersInRoom))
 
   /* Checks if there is only one user in the room
-  and if there is no voting section created yet
+  and if there is, no voting section was created yet
   */
-  if (usersInRoom.value.size === 1 && !store.$state.currentVotingSection) {
+  if (currentVotingSectionId && !currentVotingSection.value) {
     const votingSection = await $fetch('/api/v1/votingSection', {
       method: 'POST',
       body: {
@@ -105,10 +109,14 @@ $io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: {
       }
     })
     currentVotingSection.value = votingSection.id
-    store.$state.currentVotingSection = votingSection.id
-    // console.log(currentVotingSection.value)
-    // console.log(store.$state.currentVotingSection)
+    $io.emit(SocketEvent.setCurrentVotingSection, {
+      projectId,
+      votingSectionId: currentVotingSection.value,
+    })
+    return
   }
+
+
 })
 
 $io.on(SocketEvent.newUser, (message: { projectId: string, userToken: string, newUserInfo: { ready: boolean, name: string } }) => {
@@ -126,6 +134,19 @@ $io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: st
   if (typeof value === 'boolean') {
     usersInRoom.value.set(userToken, { ...existingUser, [state]: value as boolean })
   }
+})
+
+$io.on(SocketEvent.allReady, async (message: { projectId: string }) => {
+  const { projectId } = message
+  console.log('All users are ready', projectId)
+  const vote = await $fetch('/api/v1/vote', {
+    method: 'POST',
+    body: {
+      votingSectionId: currentVotingSection.value,
+      projectId,
+      userToken: userToken.value,
+    }
+  })
 })
 
 const readyButton = computed(() => {
