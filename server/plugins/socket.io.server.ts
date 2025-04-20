@@ -62,7 +62,7 @@ export default defineNitroPlugin((nitroApp) => {
       if (Object.values(roomsUsers[projectId]).every(user => user.ready)) {
         console.log('📨 All users are ready!')
         // Emit to ALL users in the room
-        socketServer.to(projectId).emit(SocketEvent.allReady, { projectId, isReady })
+        socketServer.to(projectId).emit(SocketEvent.allReady, { projectId })
       }
     })
 
