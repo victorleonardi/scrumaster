@@ -8,17 +8,13 @@
       </h1>
       <div class="center-cards-display">
         <!-- Must improve html and style from here -->
-        <!-- Till here -->
         <div
           class="grid [grid-template-columns:repeat(auto-fit,minmax(160px,1fr))] gap-4 place-items-center mx-auto max-w-[640px]">
-
-
           <!-- Você -->
           <div class="flex flex-col items-center">
             <VoteCard :isReady="isReady" :value="cardValue" />
             <p>You</p>
           </div>
-
           <!-- Demais usuários -->
           <div v-for="user in usersInRoom" :key="user[0]" v-show="user[0] != userToken">
             <div class="flex flex-col items-center">
@@ -74,6 +70,7 @@ const currentVotingSection = ref()
 
 const route = useRoute()
 
+// TODO: Check if projectId should be a number or a string
 const projectId = Number(route.params.projectId)
 
 const store = useWebsiteStore()
@@ -133,6 +130,7 @@ $io.on(SocketEvent.updateUsersInRoom, async (message: {
   and if not, it creates one.
   */
   if (currentVotingSectionId && !currentVotingSection.value) {
+    // Rethink if this can be done in the wook side, to avoid leak requests
     const votingSection = await $fetch('/api/v1/votingSection', {
       method: 'POST',
       body: {
@@ -144,6 +142,7 @@ $io.on(SocketEvent.updateUsersInRoom, async (message: {
     $io.emit(SocketEvent.setCurrentVotingSection, {
       projectId,
       votingSectionId: currentVotingSection.value,
+      userToken: userToken.value,
     })
     return
   }
@@ -225,6 +224,10 @@ async function getReady() {
   } else {
     $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value })
   }
+}
+
+async function startNewVotingSection() {
+  // MUST create a new voting section and emit an event to everyone to clear previous data
 }
 
 if (import.meta.client) {
