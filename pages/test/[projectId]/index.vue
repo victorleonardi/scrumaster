@@ -28,7 +28,9 @@
           </div>
         </div>
       </div>
-      <NButton @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
+      <NButton v-if="!allReady" @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
+      </NButton>
+      <NButton v-if="allReady" @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">Start new one!
       </NButton>
     </div>
     <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
