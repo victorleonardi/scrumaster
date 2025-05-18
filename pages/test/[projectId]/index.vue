@@ -55,7 +55,7 @@ const isReady = ref(false)
  therefore I used a Map to store the users in the
  room and assure objects are unique.
 */
-const usersInRoom = ref(new Map<string, { ready: boolean, name?: string }>())
+const usersInRoom = ref(new Map<string, { ready: boolean, name?: string, voteValue?: number }>())
 
 const currentVotingSection = ref()
 
@@ -89,16 +89,35 @@ $io.on(SocketEvent.updateUsersInRoom, async (message: {
   newUsersInRoom: {
     [userToken: string]: {
       ready: boolean;
-      name: string;
+      name?: string;
+      voteValue?: number;
     }
   },
   currentVotingSectionId?: string
 }) => {
   const { newUsersInRoom, currentVotingSectionId } = message
-  usersInRoom.value = new Map(Object.entries(newUsersInRoom))
+  console.log('Users in room', newUsersInRoom)
 
   /* Checks if there is only one user in the room
   and if there is, no voting section was created yet
+  */
+
+  for (const [userToken, userInfo] of Object.entries(newUsersInRoom)) {
+    console.log('User Info', userInfo)
+    console.log('User Token', userToken)
+    // Check if the user is already in the room
+    const existingUser = usersInRoom.value.get(userToken);
+    if (existingUser) {
+      // Update the existing user's info
+      usersInRoom.value.set(userToken, { ...existingUser, ...userInfo });
+    } else {
+      // Add the new user to the room
+      usersInRoom.value.set(userToken, userInfo);
+    }
+  }
+
+  /* Checks if there is a current voting section
+  and if not, it creates one.
   */
   if (currentVotingSectionId && !currentVotingSection.value) {
     const votingSection = await $fetch('/api/v1/votingSection', {
@@ -136,17 +155,14 @@ $io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: st
   }
 })
 
-$io.on(SocketEvent.allReady, async (message: { projectId: string }) => {
-  const { projectId } = message
-  console.log('All users are ready', projectId)
-  const vote = await $fetch('/api/v1/vote', {
-    method: 'POST',
-    body: {
-      votingSectionId: currentVotingSection.value,
-      projectId,
-      userToken: userToken.value,
-    }
-  })
+$io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userToken: string]: { ready: boolean, name: string, voteValue?: number } } }) => {
+  console.log('All users are ready for projcet: ', projectId)
+
+  const { usersInRoomReadyState } = message
+  // We will update the values from each user when every user is ready.
+  for (const [userToken, userInfo] of Object.entries(usersInRoomReadyState)) {
+    usersInRoom.value.set(userToken, userInfo)
+  }
 })
 
 const readyButton = computed(() => {
