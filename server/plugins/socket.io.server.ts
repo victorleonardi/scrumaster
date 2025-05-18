@@ -14,7 +14,8 @@ import { SocketEvent } from "~/utils/SocketEvent";
 
 interface RoomVotingSection {
   [projectId: string]: {
-    currentVotingSectionId: number
+    currentVotingSectionId: number;
+    userTokenVotingSectionOwner: string;
   }
 }
 
@@ -82,6 +83,14 @@ export default defineNitroPlugin((nitroApp) => {
       socket.emit(SocketEvent.updateUsersInRoom, { newUsersInRoom: usersInRoom, currentVotingSectionId: roomCurrentVotingSectionId[projectId] })
 
       socket.broadcast.to(projectId).emit(SocketEvent.newUser, { projectId, userToken, newUserInfo: usersInRoom[userToken] })
+    })
+
+    socket.on(SocketEvent.setCurrentVotingSection, (message: { projectId: string, currentVotingSectionId: number, userToken: string }) => {
+      const { projectId, currentVotingSectionId, userToken } = message
+      roomCurrentVotingSectionId[projectId] = {
+        currentVotingSectionId,
+        userTokenVotingSectionOwner: userToken
+      }
     })
 
     socket.on(SocketEvent.leaveProject, (message: { projectId: string, userToken: string }) => {
