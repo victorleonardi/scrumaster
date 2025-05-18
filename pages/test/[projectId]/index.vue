@@ -60,6 +60,7 @@ $io.connect()
 const cardValue = ref()
 const userToken = ref()
 const isReady = ref(false)
+const allReady = ref(false)
 
 /* A Set could not make sure objects were unique,
  therefore I used a Map to store the users in the
@@ -173,6 +174,8 @@ $io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userTok
   for (const [userToken, userInfo] of Object.entries(usersInRoomReadyState)) {
     usersInRoom.value.set(userToken, userInfo)
   }
+
+  allReady.value = true
 })
 
 const readyButton = computed(() => {
