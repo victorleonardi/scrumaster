@@ -12,12 +12,6 @@ import { SocketEvent } from "~/utils/SocketEvent";
   only make it more complicated.
 */
 
-interface RoomReadyState {
-  [projectId: string]: {
-    [userToken: string]: boolean
-  }
-}
-
 interface RoomVotingSection {
   [projectId: string]: {
     currentVotingSectionId: number
@@ -26,12 +20,16 @@ interface RoomVotingSection {
 
 interface RoomUsers {
   [projectId: string]: {
-    [userToken: string]: string
-  }
+    [userToken: string]: {
+      ready: boolean;
+      name?: string;
+      voteValue?: number;
+    };
+  };
 }
 
-const roomsReadyState: RoomReadyState = {}
-const currentVotingSectionId: RoomVotingSection = {}
+const roomUsers: RoomUsers = {}
+const roomCurrentVotingSectionId: RoomVotingSection = {}
 
 export default defineNitroPlugin((nitroApp) => {
   if (!nitroApp.h3App) {
@@ -53,42 +51,47 @@ export default defineNitroPlugin((nitroApp) => {
   socketServer.on('connection', (socket) => {
     console.log('User successfully connected to socket!')
 
-    socket.on(SocketEvent.isReady, (message: { projectId: string, userToken: string, isReady: boolean }) => {
+    socket.on(SocketEvent.isReady, (message: { projectId: string, userToken: string, isReady: boolean, voteValue?: number }) => {
       console.log('📨 Is it Ready?', message)
-      const { projectId, userToken, isReady } = message
-      if (!roomsReadyState[projectId]) return; //Probably throw an error here
-      roomsReadyState[projectId][userToken] = isReady
+      const { projectId, userToken, isReady, voteValue } = message
+      if (!roomUsers[projectId]) return; //Probably throw an error here
 
-      if (Object.values(roomsReadyState[projectId]).every((value) => value)) {
+      roomUsers[projectId][userToken].ready = isReady
+      roomUsers[projectId][userToken].voteValue = voteValue
+      socket.broadcast.to(projectId).emit(SocketEvent.updateUserState, { projectId, userToken, state: 'ready', value: isReady })
+
+      // Checks if all users are ready
+      if (Object.values(roomUsers[projectId]).every(user => user.ready)) {
         console.log('📨 All users are ready!')
-        // Emit to all users in the room
-        socketServer.to(projectId).emit(SocketEvent.allReady, { projectId, isReady })
+        // Emit to ALL users in the room
+        socketServer.to(projectId).emit(SocketEvent.allReady, { usersInRoomReadyState: roomUsers[projectId] })
       }
     })
 
-    // Try first without async events.
-    socket.on(SocketEvent.joinProject, (message: { projectId: string, userToken: string }) => {
-      const { projectId, userToken } = message
+    socket.on(SocketEvent.joinProject, (message: { projectId: string, userToken: string, name: string }) => {
+      const { projectId, userToken, name } = message
       console.log(`📨 User ${userToken} Join Project ${projectId} Room`, projectId)
 
-      if (!roomsReadyState[projectId]) roomsReadyState[projectId] = {}; //Probably throw an error here
+      if (!roomUsers[projectId]) roomUsers[projectId] = {}; //Probably throw an error here
+
       // By Default, isReady must be false
-      roomsReadyState[projectId][userToken] = false
-      const usersInRoom = Object.keys(roomsReadyState[projectId])
+      roomUsers[projectId][userToken] = { ready: false, name }
+      const usersInRoom = roomUsers[projectId]
 
       socket.join(projectId)
-      socket.emit(SocketEvent.updateUsersInRoom, usersInRoom)
+      socket.emit(SocketEvent.updateUsersInRoom, { newUsersInRoom: usersInRoom, currentVotingSectionId: roomCurrentVotingSectionId[projectId] })
 
-      socket.broadcast.to(projectId).emit(SocketEvent.newUser, { userToken })
+      socket.broadcast.to(projectId).emit(SocketEvent.newUser, { projectId, userToken, newUserInfo: usersInRoom[userToken] })
     })
 
     socket.on(SocketEvent.leaveProject, (message: { projectId: string, userToken: string }) => {
       const { projectId, userToken } = message
       console.log(`📨 User ${userToken} Leave Project ${projectId} Room`, projectId)
 
-      if (!roomsReadyState[projectId]) return; //Probably throw an error here
-      delete roomsReadyState[projectId][userToken]
-      const usersInRoom = Object.keys(roomsReadyState[projectId])
+      if (!roomUsers[projectId]) return; //Probably throw an error here
+
+      delete roomUsers[projectId][userToken]
+      const usersInRoom = roomUsers[projectId]
 
       socket.broadcast.to(projectId).emit(SocketEvent.updateUsersInRoom, usersInRoom)
       socket.leave(projectId)

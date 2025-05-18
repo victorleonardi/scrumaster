@@ -1,5 +1,5 @@
 <template>
-  <div class="card" :class="{ 'has_value': hasValue }">
+  <div class="card" :class="{ 'has_value': isReady }">
     <p>
       {{ value }}
     </p>
@@ -7,12 +7,14 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed, } from 'vue';
+import { computed, } from 'vue';
 
 const props = defineProps<{
+  isReady: boolean,
   value?: number
 }>()
-const hasValue = computed(() => props?.value !== undefined)
+const isReady = computed(() => props.isReady)
+const value = computed(() => props.value)
 </script>
 
 <style>

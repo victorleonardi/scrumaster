@@ -14,14 +14,14 @@
 
           <!-- Você -->
           <div class="flex flex-col items-center">
-            <VoteCard :value="cardValue" />
+            <VoteCard :isReady="isReady" :value="cardValue" />
             <p>You</p>
           </div>
 
           <!-- Demais usuários -->
-          <div v-for="user in usersInRoom" :key="user" v-show="user != userToken">
+          <div v-for="user in usersInRoom" :key="user[0]" v-show="user[0] != userToken">
             <div class="flex flex-col items-center">
-              <VoteCard />
+              <VoteCard :isReady="user[1].ready" :value="getVoteValue(user[1])" />
               <p>{{ user }}</p>
             </div>
           </div>
@@ -37,6 +37,15 @@
 </template>
 
 <script setup lang="ts">
+/*
+  MUST PERSIST info of users in room so when refresh the page
+  that data is not lost. It's a current problem, but it doesn't
+  impact the core functionality of the app.
+
+  For NOW, keep going with the current implementation and test
+  it.
+*/
+
 import { NButton, useNotification } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { nanoid } from "nanoid"
@@ -50,13 +59,14 @@ $io.connect()
 const cardValue = ref()
 const userToken = ref()
 const isReady = ref(false)
-// probably move to an object, so we can keep
-// track of the userToken, userName and its ready state
-const usersInRoom = ref(new Set<string>())
+
+/* A Set could not make sure objects were unique,
+ therefore I used a Map to store the users in the
+ room and assure objects are unique.
+*/
+const usersInRoom = ref(new Map<string, { ready: boolean, name?: string, voteValue?: number }>())
 
 const currentVotingSection = ref()
-
-const showAlert = ref(true)
 
 const route = useRoute()
 
@@ -84,12 +94,41 @@ onMounted(async () => {
   })
 })
 
-$io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: string[]) => {
+$io.on(SocketEvent.updateUsersInRoom, async (message: {
+  newUsersInRoom: {
+    [userToken: string]: {
+      ready: boolean;
+      name?: string;
+      voteValue?: number;
+    }
+  },
+  currentVotingSectionId?: string
+}) => {
+  const { newUsersInRoom, currentVotingSectionId } = message
   console.log('Users in room', newUsersInRoom)
-  console.log(newUsersInRoom)
-  usersInRoom.value = new Set(newUsersInRoom)
 
-  if (usersInRoom.value.size === 1 && !store.$state.currentVotingSection) {
+  /* Checks if there is only one user in the room
+  and if there is, no voting section was created yet
+  */
+
+  for (const [userToken, userInfo] of Object.entries(newUsersInRoom)) {
+    console.log('User Info', userInfo)
+    console.log('User Token', userToken)
+    // Check if the user is already in the room
+    const existingUser = usersInRoom.value.get(userToken);
+    if (existingUser) {
+      // Update the existing user's info
+      usersInRoom.value.set(userToken, { ...existingUser, ...userInfo });
+    } else {
+      // Add the new user to the room
+      usersInRoom.value.set(userToken, userInfo);
+    }
+  }
+
+  /* Checks if there is a current voting section
+  and if not, it creates one.
+  */
+  if (currentVotingSectionId && !currentVotingSection.value) {
     const votingSection = await $fetch('/api/v1/votingSection', {
       method: 'POST',
       body: {
@@ -98,20 +137,54 @@ $io.on(SocketEvent.updateUsersInRoom, async (newUsersInRoom: string[]) => {
       }
     })
     currentVotingSection.value = votingSection.id
-    store.$state.currentVotingSection = votingSection.id
-    console.log(currentVotingSection.value)
-    console.log(store.$state.currentVotingSection)
+    $io.emit(SocketEvent.setCurrentVotingSection, {
+      projectId,
+      votingSectionId: currentVotingSection.value,
+    })
+    return
+  }
+
+
+})
+
+$io.on(SocketEvent.newUser, (message: { projectId: string, userToken: string, newUserInfo: { ready: boolean, name: string } }) => {
+  const { projectId, userToken, newUserInfo } = message
+  console.log('New User Connected', newUserInfo)
+  usersInRoom.value.set(userToken, newUserInfo)
+})
+
+$io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: string, state: string, value: string | boolean }) => {
+  const { projectId, userToken, state, value } = message
+  console.log('User State Updated', state, value)
+  const existingUser = usersInRoom.value.get(userToken);
+  if (!existingUser) return
+
+  if (typeof value === 'boolean') {
+    usersInRoom.value.set(userToken, { ...existingUser, [state]: value as boolean })
   }
 })
 
-$io.on(SocketEvent.newUser, (newUser) => {
-  console.log('New User Connected', newUser)
-  usersInRoom.value.add(newUser.userToken)
+$io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userToken: string]: { ready: boolean, name?: string, voteValue?: number } } }) => {
+  console.log('All users are ready for projcet: ', projectId)
+
+  const { usersInRoomReadyState } = message
+  // We will update the values from each user when every user is ready.
+  for (const [userToken, userInfo] of Object.entries(usersInRoomReadyState)) {
+    usersInRoom.value.set(userToken, userInfo)
+  }
 })
 
 const readyButton = computed(() => {
   return !isReady.value ? 'Ready!' : 'Wait a Minute!'
 })
+
+function getVoteValue(user: { ready: boolean, name?: string, voteValue?: number }) {
+  if (user.ready) {
+    return user.voteValue
+  }
+
+  return
+}
 
 function notify(title: string, content: string) {
   notification.error({
@@ -132,31 +205,20 @@ function setCardValue(value: string) {
 
 }
 
-/*
-
-Now that the most complex case works, we can create a simple one.
- It can be simplified to just keep track of ready state of each user connected.
- Once all users are ready, we can send the vote to the server.
-
- Now, to keep track of the ready state, there are two ways:
- 1. Use a simple array to keep track of the users that are ready.
- 2. Use an object with usersTokens as ids and a boolean as value.
-
- Once everybody is ready, we can register the votes on the backend.
- and put an end to the current votingSection. That means we need to keep track of
- the votingSectionId on pinia, maybe?
-
- We ALSO need to keep track of the number of users connected and its ids/names, to represent
- each one on their respective card.
-*/
-
 async function getReady() {
   if (!cardValue.value) {
     notify('Missing Value', 'Please select a value before voting')
     return
   }
   isReady.value = !isReady.value
-  $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value })
+
+  // If isReady is true, we need to emit the cardValue.
+  // Else, we should just emit isReady and make voteValue undefined.
+  if (isReady.value) {
+    $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value, voteValue: cardValue.value })
+  } else {
+    $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value })
+  }
 }
 
 if (import.meta.client) {

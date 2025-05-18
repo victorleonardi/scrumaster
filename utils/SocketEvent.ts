@@ -8,6 +8,9 @@ export enum SocketEvent {
   newUser = 'newUser',
   userLeft = 'userLeft',
   updateUsersInRoom = 'updateUsersInRoom',
+  updateUserState = 'updateUserState',
 
+  setCurrentVotingSection = 'setCurrentVotingSection',
+  getCurrentVotingSection = 'getCurrentVotingSection',
   vote = 'vote',
 }

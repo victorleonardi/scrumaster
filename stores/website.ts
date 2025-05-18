@@ -23,8 +23,6 @@ export const useWebsiteStore = defineStore('websiteStore', {
       if (this.users.includes(userToken)) return
       this.users.push(userToken)
     }
-
-
     // addOrUpdateSection(sectionId: string, userToken: string, voteValue: number) {
     //   this.sections[sectionId] ??= {}; // check if the section exists, if not create it
     //   this.sections[sectionId][userToken] = voteValue;
@@ -32,5 +30,8 @@ export const useWebsiteStore = defineStore('websiteStore', {
     // removeSection(sectionId: string) {
     //   delete this.sections[sectionId]
     // }
+  },
+  getters: {
+    currentVotingSection: (state) => state.currentVotingSection
   }
 })
