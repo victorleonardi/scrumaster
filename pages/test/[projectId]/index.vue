@@ -155,7 +155,7 @@ $io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: st
   }
 })
 
-$io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userToken: string]: { ready: boolean, name: string, voteValue?: number } } }) => {
+$io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userToken: string]: { ready: boolean, name?: string, voteValue?: number } } }) => {
   console.log('All users are ready for projcet: ', projectId)
 
   const { usersInRoomReadyState } = message
@@ -194,7 +194,14 @@ async function getReady() {
     return
   }
   isReady.value = !isReady.value
-  $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value })
+
+  // If isReady is true, we need to emit the cardValue.
+  // Else, we should just emit isReady and make voteValue undefined.
+  if (isReady.value) {
+    $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value, voteValue: cardValue.value })
+  } else {
+    $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value })
+  }
 }
 
 if (import.meta.client) {
