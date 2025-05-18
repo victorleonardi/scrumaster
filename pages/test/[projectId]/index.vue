@@ -21,7 +21,7 @@
           <!-- Demais usuários -->
           <div v-for="user in usersInRoom" :key="user[0]" v-show="user[0] != userToken">
             <div class="flex flex-col items-center">
-              <VoteCard :isReady="user[1].ready" />
+              <VoteCard :isReady="user[1].ready" :value="getVoteValue(user[1])" />
               <p>{{ user }}</p>
             </div>
           </div>
@@ -37,6 +37,15 @@
 </template>
 
 <script setup lang="ts">
+/*
+  MUST PERSIST info of users in room so when refresh the page
+  that data is not lost. It's a current problem, but it doesn't
+  impact the core functionality of the app.
+
+  For NOW, keep going with the current implementation and test
+  it.
+*/
+
 import { NButton, useNotification } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { nanoid } from "nanoid"
@@ -168,6 +177,14 @@ $io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userTok
 const readyButton = computed(() => {
   return !isReady.value ? 'Ready!' : 'Wait a Minute!'
 })
+
+function getVoteValue(user: { ready: boolean, name?: string, voteValue?: number }) {
+  if (user.ready) {
+    return user.voteValue
+  }
+
+  return
+}
 
 function notify(title: string, content: string) {
   notification.error({
