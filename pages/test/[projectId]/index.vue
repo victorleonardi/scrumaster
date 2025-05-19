@@ -26,7 +26,8 @@
       </div>
       <NButton v-if="!allReady" @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
       </NButton>
-      <NButton v-if="allReady" @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">Start new one!
+      <NButton v-if="allReady" @click="startNewVotingSection" type="primary" color="#000000" text-color="#FFFFFF">Start
+        new one!
       </NButton>
     </div>
     <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
@@ -87,8 +88,6 @@ onMounted(async () => {
     userToken.value = localStorage.getItem('userToken')
   }
 
-  console.log('userToken', userToken.value)
-
   $io.emit(SocketEvent.joinProject, {
     projectId,
     userToken: userToken.value,
@@ -102,19 +101,14 @@ $io.on(SocketEvent.updateUsersInRoom, async (message: {
       name?: string;
       voteValue?: number;
     }
-  },
-  currentVotingSectionId?: string
+  }
 }) => {
-  const { newUsersInRoom, currentVotingSectionId } = message
-  console.log('Users in room', newUsersInRoom)
-
+  const { newUsersInRoom } = message
   /* Checks if there is only one user in the room
   and if there is, no voting section was created yet
   */
 
   for (const [userToken, userInfo] of Object.entries(newUsersInRoom)) {
-    console.log('User Info', userInfo)
-    console.log('User Token', userToken)
     // Check if the user is already in the room
     const existingUser = usersInRoom.value.get(userToken);
     if (existingUser) {
@@ -125,40 +119,15 @@ $io.on(SocketEvent.updateUsersInRoom, async (message: {
       usersInRoom.value.set(userToken, userInfo);
     }
   }
-
-  /* Checks if there is a current voting section
-  and if not, it creates one.
-  */
-  if (currentVotingSectionId && !currentVotingSection.value) {
-    // Rethink if this can be done in the wook side, to avoid leak requests
-    const votingSection = await $fetch('/api/v1/votingSection', {
-      method: 'POST',
-      body: {
-        projectId,
-        userToken: userToken.value,
-      }
-    })
-    currentVotingSection.value = votingSection.id
-    $io.emit(SocketEvent.setCurrentVotingSection, {
-      projectId,
-      votingSectionId: currentVotingSection.value,
-      userToken: userToken.value,
-    })
-    return
-  }
-
-
 })
 
 $io.on(SocketEvent.newUser, (message: { projectId: string, userToken: string, newUserInfo: { ready: boolean, name: string } }) => {
   const { projectId, userToken, newUserInfo } = message
-  console.log('New User Connected', newUserInfo)
   usersInRoom.value.set(userToken, newUserInfo)
 })
 
 $io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: string, state: string, value: string | boolean }) => {
   const { projectId, userToken, state, value } = message
-  console.log('User State Updated', state, value)
   const existingUser = usersInRoom.value.get(userToken);
   if (!existingUser) return
 
@@ -168,14 +137,11 @@ $io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: st
 })
 
 $io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userToken: string]: { ready: boolean, name?: string, voteValue?: number } } }) => {
-  console.log('All users are ready for projcet: ', projectId)
-
   const { usersInRoomReadyState } = message
   // We will update the values from each user when every user is ready.
   for (const [userToken, userInfo] of Object.entries(usersInRoomReadyState)) {
     usersInRoom.value.set(userToken, userInfo)
   }
-
   allReady.value = true
 })
 
@@ -228,6 +194,16 @@ async function getReady() {
 
 async function startNewVotingSection() {
   // MUST create a new voting section and emit an event to everyone to clear previous data
+  console.log('Starting new voting section')
+  for (const userInfo of usersInRoom.value.values()) {
+    userInfo.voteValue = undefined
+    userInfo.ready = false
+  }
+
+  cardValue.value = undefined
+  isReady.value = false
+
+  allReady.value = false
 }
 
 if (import.meta.client) {
