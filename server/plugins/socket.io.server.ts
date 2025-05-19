@@ -25,6 +25,7 @@ interface RoomUsers {
       ready: boolean;
       name?: string;
       voteValue?: number;
+      nextVoting?: boolean
     };
   };
 }
@@ -64,19 +65,8 @@ export default defineNitroPlugin((nitroApp) => {
       // Checks if all users are ready
       if (Object.values(roomUsers[projectId]).every(user => user.ready)) {
         console.log('📨 All users are ready!')
-        // Create new voting section
-        const newVotingSection = await $fetch('/api/v1/votingSection', {
-          method: 'POST',
-          body: {
-            projectId,
-            userToken: roomCurrentVotingSectionId[projectId].userProjectOwner, // change for project Owner
-          }
-        })
-
-        roomCurrentVotingSectionId[projectId].currentVotingSectionId = newVotingSection.id
-
         // Emit to ALL users in the room
-        socketServer.to(projectId).emit(SocketEvent.allReady, { usersInRoomReadyState: roomUsers[projectId], newVotingSection })
+        socketServer.to(projectId).emit(SocketEvent.allReady, { usersInRoomReadyState: roomUsers[projectId] })
       }
     })
 
@@ -114,12 +104,28 @@ export default defineNitroPlugin((nitroApp) => {
       socket.broadcast.to(projectId).emit(SocketEvent.newUser, { projectId, userToken, newUserInfo: usersInRoom[userToken] })
     })
 
-    socket.on(SocketEvent.setCurrentVotingSection, async (message: { projectId: string, currentVotingSectionId: number, userToken: string }) => {
-      const { projectId, currentVotingSectionId, userToken } = message
-      roomCurrentVotingSectionId[projectId] = {
-        currentVotingSectionId,
-        userProjectOwner: userToken
+    socket.on(SocketEvent.nextVotingSection, async (message: { projectId: string, userToken: string }) => {
+      const { projectId, userToken } = message
+      console.log('📨 Ready for Next Voting Section', message)
+
+      roomUsers[projectId][userToken].nextVoting = true
+
+      if (Object.values(roomUsers[projectId]).every(user => user.nextVoting)) {
+        console.log('📨 Move to next voting section.')
+
+        const newVotingSection = await $fetch('/api/v1/votingSection', {
+          method: 'POST',
+          body: {
+            projectId,
+            userToken: roomCurrentVotingSectionId[projectId].userProjectOwner,
+          }
+        })
+
+        roomCurrentVotingSectionId[projectId].currentVotingSectionId = newVotingSection.id
+
+        socketServer.to(projectId).emit(SocketEvent.startNewVoting)
       }
+
     })
 
     socket.on(SocketEvent.leaveProject, (message: { projectId: string, userToken: string }) => {
