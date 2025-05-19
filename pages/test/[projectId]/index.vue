@@ -26,8 +26,8 @@
       </div>
       <NButton v-if="!allReady" @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
       </NButton>
-      <NButton v-if="allReady" @click="startNewVotingSection" type="primary" color="#000000" text-color="#FFFFFF">Start
-        new one!
+      <NButton v-if="allReady" @click="startNewVotingSection" type="primary" color="#000000" text-color="#FFFFFF">{{
+        readyNextVotingButton }}
       </NButton>
     </div>
     <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
@@ -60,6 +60,7 @@ const cardValue = ref()
 const userToken = ref()
 const isReady = ref(false)
 const allReady = ref(false)
+const readyForNextVoting = ref(false)
 
 /* A Set could not make sure objects were unique,
  therefore I used a Map to store the users in the
@@ -145,8 +146,24 @@ $io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userTok
   allReady.value = true
 })
 
+$io.on(SocketEvent.startNewVoting, () => {
+  cardValue.value = undefined
+  allReady.value = false
+  isReady.value = false
+
+  // Reset the users in room
+  for (const userInfo of usersInRoom.value.values()) {
+    userInfo.voteValue = undefined
+    userInfo.ready = false
+  }
+})
+
 const readyButton = computed(() => {
   return !isReady.value ? 'Ready!' : 'Wait a Minute!'
+})
+
+const readyNextVotingButton = computed(() => {
+  return !readyForNextVoting.value ? 'Start new one!' : 'Wait a Minute!'
 })
 
 function getVoteValue(user: { ready: boolean, name?: string, voteValue?: number }) {
@@ -193,17 +210,9 @@ async function getReady() {
 }
 
 async function startNewVotingSection() {
-  // MUST create a new voting section and emit an event to everyone to clear previous data
-  console.log('Starting new voting section')
-  for (const userInfo of usersInRoom.value.values()) {
-    userInfo.voteValue = undefined
-    userInfo.ready = false
-  }
-
-  cardValue.value = undefined
-  isReady.value = false
-
-  allReady.value = false
+  console.log('Move to next voting section.')
+  readyForNextVoting.value = true
+  $io.emit(SocketEvent.nextVotingSection, { projectId, userToken: userToken.value })
 }
 
 if (import.meta.client) {
