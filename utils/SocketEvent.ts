@@ -2,6 +2,10 @@ export enum SocketEvent {
   isReady = 'isReady',
   allReady = 'allReady',
 
+  repeatVoting = 'repeatVoting',
+  nextVotingSection = 'nextVotingSection',
+  startNewVoting = 'startNewVoting',
+
   joinProject = 'joinProject',
   leaveProject = 'leaveProject',
 
@@ -10,7 +14,6 @@ export enum SocketEvent {
   updateUsersInRoom = 'updateUsersInRoom',
   updateUserState = 'updateUserState',
 
-  setCurrentVotingSection = 'setCurrentVotingSection',
   getCurrentVotingSection = 'getCurrentVotingSection',
   vote = 'vote',
 }
