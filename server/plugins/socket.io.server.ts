@@ -123,7 +123,13 @@ export default defineNitroPlugin((nitroApp) => {
 
         roomCurrentVotingSectionId[projectId].currentVotingSectionId = newVotingSection.id
 
-        socketServer.to(projectId).emit(SocketEvent.startNewVoting)
+        for (const user in roomUsers[projectId]) {
+          roomUsers[projectId][user].ready = false
+          roomUsers[projectId][user].nextVoting = false
+          roomUsers[projectId][user].voteValue = undefined
+        }
+
+        socketServer.to(projectId).emit(SocketEvent.startNewVoting, { usersInRoomNextVotingState: roomUsers[projectId]} )
       }
 
     })
