@@ -7,10 +7,6 @@ export const useWebsiteStore = defineStore('websiteStore', {
     usersReady: {} as Record<string, boolean>
   }),
   actions: {
-    setCurrentVotingSection(votingSectionId: Number) {
-      this.currentVotingSection = votingSectionId
-    },
-
     newReady(userToken: string) {
       this.usersReady[userToken] = true
     },

@@ -1,3 +1,4 @@
+<!-- TODO: Componetize this! -->
 <template>
   <PageHeader />
   <div class="major-container">
@@ -7,17 +8,13 @@
       </h1>
       <div class="center-cards-display">
         <!-- Must improve html and style from here -->
-        <!-- Till here -->
         <div
           class="grid [grid-template-columns:repeat(auto-fit,minmax(160px,1fr))] gap-4 place-items-center mx-auto max-w-[640px]">
-
-
           <!-- Você -->
           <div class="flex flex-col items-center">
             <VoteCard :isReady="isReady" :value="cardValue" />
             <p>You</p>
           </div>
-
           <!-- Demais usuários -->
           <div v-for="user in usersInRoom" :key="user[0]" v-show="user[0] != userToken">
             <div class="flex flex-col items-center">
@@ -27,7 +24,10 @@
           </div>
         </div>
       </div>
-      <NButton @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
+      <NButton v-if="!allReady" @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
+      </NButton>
+      <NButton v-if="allReady" @click="startNewVotingSection" type="primary" color="#000000" text-color="#FFFFFF">{{
+        readyNextVotingButton }}
       </NButton>
     </div>
     <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
@@ -59,6 +59,8 @@ $io.connect()
 const cardValue = ref()
 const userToken = ref()
 const isReady = ref(false)
+const allReady = ref(false)
+const readyForNextVoting = ref(false)
 
 /* A Set could not make sure objects were unique,
  therefore I used a Map to store the users in the
@@ -66,10 +68,9 @@ const isReady = ref(false)
 */
 const usersInRoom = ref(new Map<string, { ready: boolean, name?: string, voteValue?: number }>())
 
-const currentVotingSection = ref()
-
 const route = useRoute()
 
+// TODO: Check if projectId should be a number or a string
 const projectId = Number(route.params.projectId)
 
 const store = useWebsiteStore()
@@ -86,8 +87,6 @@ onMounted(async () => {
     userToken.value = localStorage.getItem('userToken')
   }
 
-  console.log('userToken', userToken.value)
-
   $io.emit(SocketEvent.joinProject, {
     projectId,
     userToken: userToken.value,
@@ -101,19 +100,14 @@ $io.on(SocketEvent.updateUsersInRoom, async (message: {
       name?: string;
       voteValue?: number;
     }
-  },
-  currentVotingSectionId?: string
+  }
 }) => {
-  const { newUsersInRoom, currentVotingSectionId } = message
-  console.log('Users in room', newUsersInRoom)
-
+  const { newUsersInRoom } = message
   /* Checks if there is only one user in the room
   and if there is, no voting section was created yet
   */
 
   for (const [userToken, userInfo] of Object.entries(newUsersInRoom)) {
-    console.log('User Info', userInfo)
-    console.log('User Token', userToken)
     // Check if the user is already in the room
     const existingUser = usersInRoom.value.get(userToken);
     if (existingUser) {
@@ -124,38 +118,15 @@ $io.on(SocketEvent.updateUsersInRoom, async (message: {
       usersInRoom.value.set(userToken, userInfo);
     }
   }
-
-  /* Checks if there is a current voting section
-  and if not, it creates one.
-  */
-  if (currentVotingSectionId && !currentVotingSection.value) {
-    const votingSection = await $fetch('/api/v1/votingSection', {
-      method: 'POST',
-      body: {
-        projectId,
-        userToken: userToken.value,
-      }
-    })
-    currentVotingSection.value = votingSection.id
-    $io.emit(SocketEvent.setCurrentVotingSection, {
-      projectId,
-      votingSectionId: currentVotingSection.value,
-    })
-    return
-  }
-
-
 })
 
 $io.on(SocketEvent.newUser, (message: { projectId: string, userToken: string, newUserInfo: { ready: boolean, name: string } }) => {
   const { projectId, userToken, newUserInfo } = message
-  console.log('New User Connected', newUserInfo)
   usersInRoom.value.set(userToken, newUserInfo)
 })
 
 $io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: string, state: string, value: string | boolean }) => {
   const { projectId, userToken, state, value } = message
-  console.log('User State Updated', state, value)
   const existingUser = usersInRoom.value.get(userToken);
   if (!existingUser) return
 
@@ -165,17 +136,33 @@ $io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: st
 })
 
 $io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userToken: string]: { ready: boolean, name?: string, voteValue?: number } } }) => {
-  console.log('All users are ready for projcet: ', projectId)
-
   const { usersInRoomReadyState } = message
   // We will update the values from each user when every user is ready.
   for (const [userToken, userInfo] of Object.entries(usersInRoomReadyState)) {
+    usersInRoom.value.set(userToken, userInfo)
+  }
+  allReady.value = true
+})
+
+$io.on(SocketEvent.startNewVoting, (message: { usersInRoomNextVotingState: { [userToken: string]: { ready: boolean, name?: string, voteValue?: number } } }) => {
+  const { usersInRoomNextVotingState } = message
+
+  cardValue.value = undefined
+  allReady.value = false
+  isReady.value = false
+
+  // Reset the users in room
+  for (const [userToken, userInfo] of Object.entries(usersInRoomNextVotingState)) {
     usersInRoom.value.set(userToken, userInfo)
   }
 })
 
 const readyButton = computed(() => {
   return !isReady.value ? 'Ready!' : 'Wait a Minute!'
+})
+
+const readyNextVotingButton = computed(() => {
+  return !readyForNextVoting.value ? 'Start new one!' : 'Wait a Minute!'
 })
 
 function getVoteValue(user: { ready: boolean, name?: string, voteValue?: number }) {
@@ -219,6 +206,12 @@ async function getReady() {
   } else {
     $io.emit(SocketEvent.isReady, { projectId, userToken: userToken.value, isReady: isReady.value })
   }
+}
+
+async function startNewVotingSection() {
+  console.log('Move to next voting section.')
+  readyForNextVoting.value = true
+  $io.emit(SocketEvent.nextVotingSection, { projectId, userToken: userToken.value })
 }
 
 if (import.meta.client) {

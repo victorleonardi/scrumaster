@@ -14,7 +14,8 @@ import { SocketEvent } from "~/utils/SocketEvent";
 
 interface RoomVotingSection {
   [projectId: string]: {
-    currentVotingSectionId: number
+    currentVotingSectionId: number;
+    userProjectOwner: string;
   }
 }
 
@@ -24,6 +25,7 @@ interface RoomUsers {
       ready: boolean;
       name?: string;
       voteValue?: number;
+      nextVoting?: boolean
     };
   };
 }
@@ -51,7 +53,7 @@ export default defineNitroPlugin((nitroApp) => {
   socketServer.on('connection', (socket) => {
     console.log('User successfully connected to socket!')
 
-    socket.on(SocketEvent.isReady, (message: { projectId: string, userToken: string, isReady: boolean, voteValue?: number }) => {
+    socket.on(SocketEvent.isReady, async (message: { projectId: string, userToken: string, isReady: boolean, voteValue?: number }) => {
       console.log('📨 Is it Ready?', message)
       const { projectId, userToken, isReady, voteValue } = message
       if (!roomUsers[projectId]) return; //Probably throw an error here
@@ -68,12 +70,30 @@ export default defineNitroPlugin((nitroApp) => {
       }
     })
 
-    socket.on(SocketEvent.joinProject, (message: { projectId: string, userToken: string, name: string }) => {
+    socket.on(SocketEvent.joinProject, async (message: { projectId: string, userToken: string, name: string }) => {
       const { projectId, userToken, name } = message
       console.log(`📨 User ${userToken} Join Project ${projectId} Room`, projectId)
 
-      if (!roomUsers[projectId]) roomUsers[projectId] = {}; //Probably throw an error here
+      /*
+        Check if there is a room for the projectId, if not, create one
+        and create a new voting section for the project, linking it
+        to the first user.
+      */
+      if (!roomUsers[projectId]) {
+        roomUsers[projectId] = {}
+        const newVotingSection = await $fetch('/api/v1/votingSection', {
+          method: 'POST',
+          body: {
+            projectId,
+            userToken: userToken,
+          }
+        })
 
+        roomCurrentVotingSectionId[projectId] = {
+          currentVotingSectionId: newVotingSection.id,
+          userProjectOwner: userToken
+        }
+      };
       // By Default, isReady must be false
       roomUsers[projectId][userToken] = { ready: false, name }
       const usersInRoom = roomUsers[projectId]
@@ -82,6 +102,36 @@ export default defineNitroPlugin((nitroApp) => {
       socket.emit(SocketEvent.updateUsersInRoom, { newUsersInRoom: usersInRoom, currentVotingSectionId: roomCurrentVotingSectionId[projectId] })
 
       socket.broadcast.to(projectId).emit(SocketEvent.newUser, { projectId, userToken, newUserInfo: usersInRoom[userToken] })
+    })
+
+    socket.on(SocketEvent.nextVotingSection, async (message: { projectId: string, userToken: string }) => {
+      const { projectId, userToken } = message
+      console.log('📨 Ready for Next Voting Section', message)
+
+      roomUsers[projectId][userToken].nextVoting = true
+
+      if (Object.values(roomUsers[projectId]).every(user => user.nextVoting)) {
+        console.log('📨 Move to next voting section.')
+
+        const newVotingSection = await $fetch('/api/v1/votingSection', {
+          method: 'POST',
+          body: {
+            projectId,
+            userToken: roomCurrentVotingSectionId[projectId].userProjectOwner,
+          }
+        })
+
+        roomCurrentVotingSectionId[projectId].currentVotingSectionId = newVotingSection.id
+
+        for (const user in roomUsers[projectId]) {
+          roomUsers[projectId][user].ready = false
+          roomUsers[projectId][user].nextVoting = false
+          roomUsers[projectId][user].voteValue = undefined
+        }
+
+        socketServer.to(projectId).emit(SocketEvent.startNewVoting, { usersInRoomNextVotingState: roomUsers[projectId]} )
+      }
+
     })
 
     socket.on(SocketEvent.leaveProject, (message: { projectId: string, userToken: string }) => {
@@ -93,7 +143,7 @@ export default defineNitroPlugin((nitroApp) => {
       delete roomUsers[projectId][userToken]
       const usersInRoom = roomUsers[projectId]
 
-      socket.broadcast.to(projectId).emit(SocketEvent.updateUsersInRoom, usersInRoom)
+      socket.broadcast.to(projectId).emit(SocketEvent.updateUsersInRoom, { newUsersInRoom: usersInRoom, currentVotingSectionId: roomCurrentVotingSectionId[projectId] })
       socket.leave(projectId)
     })
 
