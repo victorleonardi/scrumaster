@@ -68,8 +68,6 @@ const readyForNextVoting = ref(false)
 */
 const usersInRoom = ref(new Map<string, { ready: boolean, name?: string, voteValue?: number }>())
 
-const currentVotingSection = ref()
-
 const route = useRoute()
 
 // TODO: Check if projectId should be a number or a string
@@ -146,15 +144,16 @@ $io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userTok
   allReady.value = true
 })
 
-$io.on(SocketEvent.startNewVoting, () => {
+$io.on(SocketEvent.startNewVoting, (message: { usersInRoomNextVotingState: { [userToken: string]: { ready: boolean, name?: string, voteValue?: number } } }) => {
+  const { usersInRoomNextVotingState } = message
+
   cardValue.value = undefined
   allReady.value = false
   isReady.value = false
 
   // Reset the users in room
-  for (const userInfo of usersInRoom.value.values()) {
-    userInfo.voteValue = undefined
-    userInfo.ready = false
+  for (const [userToken, userInfo] of Object.entries(usersInRoomNextVotingState)) {
+    usersInRoom.value.set(userToken, userInfo)
   }
 })
 
