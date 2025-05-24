@@ -15,6 +15,10 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ],
+    ssr: {
+      noExternal: ['vueuc'],
+    },
+
   },
   css: ['~/assets/css/main.css'],
 })
