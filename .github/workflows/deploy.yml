@@ -39,7 +39,7 @@ jobs:
             captain-definition
             tsconfig.json
             nuxt.config.ts
-            yarn.lock
+            package-lock.json
           outPath: deploy.tar
 
       - name: Deploy App to CapRover
