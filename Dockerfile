@@ -4,7 +4,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm install install --production
+RUN npm install --production
 
 # Copia TODOS os arquivos necessários (incluindo .nuxt e .output)
 COPY . .
