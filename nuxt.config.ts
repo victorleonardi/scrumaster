@@ -9,11 +9,7 @@ export default defineNuxtConfig({
     },
     db: {
       postgres: {
-        host: process.env.POSTGRES_HOST || 'localhost',
-        port: process.env.POSTGRES_PORT || 5432,
-        user: process.env.POSTGRES_USER || 'postgres',
-        password: process.env.POSTGRES_PASSWORD || 'password',
-        database: process.env.POSTGRES_DB || 'voting_app',
+        uri: process.env.POSTGRES_URI || 'postgresql://postgres:postgres@localhost:5432/postgres',
       }
     }
 
