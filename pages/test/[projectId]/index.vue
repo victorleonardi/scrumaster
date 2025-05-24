@@ -24,10 +24,10 @@
           </div>
         </div>
       </div>
-      <NButton v-if="!allReady" @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButton }}
+      <NButton v-if="!allReady" @click="getReady" type="primary" color="#000000" text-color="#FFFFFF">{{ readyButtonText }}
       </NButton>
       <NButton v-if="allReady" @click="startNewVotingSection" type="primary" color="#000000" text-color="#FFFFFF">{{
-        readyNextVotingButton }}
+        readyNextVotingButtonText }}
       </NButton>
     </div>
     <VoteBar :disable="isReady" class="vote-bar" @cardValue="setCardValue" />
@@ -120,11 +120,13 @@ $io.on(SocketEvent.updateUsersInRoom, async (message: {
   }
 })
 
+// Whenever a new user joins the room, we need to add them to the usersInRoom Map
 $io.on(SocketEvent.newUser, (message: { projectId: string, userToken: string, newUserInfo: { ready: boolean, name: string } }) => {
   const { projectId, userToken, newUserInfo } = message
   usersInRoom.value.set(userToken, newUserInfo)
 })
 
+// Whenever a user has its information updated, we need to update the usersInRoom Map
 $io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: string, state: string, value: string | boolean }) => {
   const { projectId, userToken, state, value } = message
   const existingUser = usersInRoom.value.get(userToken);
@@ -135,6 +137,8 @@ $io.on(SocketEvent.updateUserState, (message: { projectId: string, userToken: st
   }
 })
 
+// When all users are ready to show their votes, we will update the usersInRoom Map and change the
+// allReady state to true.
 $io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userToken: string]: { ready: boolean, name?: string, voteValue?: number } } }) => {
   const { usersInRoomReadyState } = message
   // We will update the values from each user when every user is ready.
@@ -144,6 +148,7 @@ $io.on(SocketEvent.allReady, async (message: { usersInRoomReadyState: { [userTok
   allReady.value = true
 })
 
+// When everybody agrees to start a new voting section, we will reset the cardValue and isReady state
 $io.on(SocketEvent.startNewVoting, (message: { usersInRoomNextVotingState: { [userToken: string]: { ready: boolean, name?: string, voteValue?: number } } }) => {
   const { usersInRoomNextVotingState } = message
 
@@ -157,11 +162,11 @@ $io.on(SocketEvent.startNewVoting, (message: { usersInRoomNextVotingState: { [us
   }
 })
 
-const readyButton = computed(() => {
+const readyButtonText = computed(() => {
   return !isReady.value ? 'Ready!' : 'Wait a Minute!'
 })
 
-const readyNextVotingButton = computed(() => {
+const readyNextVotingButtonText = computed(() => {
   return !readyForNextVoting.value ? 'Start new one!' : 'Wait a Minute!'
 })
 
@@ -173,6 +178,7 @@ function getVoteValue(user: { ready: boolean, name?: string, voteValue?: number 
   return
 }
 
+// TODO: Create a notification component to be used in the app and make it for every notification
 function notify(title: string, content: string) {
   notification.error({
     title: title,
@@ -182,7 +188,7 @@ function notify(title: string, content: string) {
 
 }
 
-// Create focus to be passed as prop
+// TODO: Create focus to be passed as prop
 function setCardValue(value: string) {
   if (cardValue.value === value) {
     cardValue.value = null
@@ -211,6 +217,7 @@ async function getReady() {
 async function startNewVotingSection() {
   console.log('Move to next voting section.')
   readyForNextVoting.value = true
+  // Notify all users in the room that this user is ready for the next voting section
   $io.emit(SocketEvent.nextVotingSection, { projectId, userToken: userToken.value })
 }
 
