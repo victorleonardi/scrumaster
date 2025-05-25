@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       socketPort: 3002,
-      url: 'http://localhost'
+      url: process.env.URL || 'http://localhost'
     },
     db: {
       postgres: {

@@ -39,7 +39,6 @@ export default defineNitroPlugin((nitroApp) => {
     return
   }
 
-  console.log('Socket.io server started')
   console.log('Socket.io server port:', useRuntimeConfig().public.socketPort)
 
   const socketServer = new Server(
@@ -49,6 +48,8 @@ export default defineNitroPlugin((nitroApp) => {
       origin: '*'
     }
   })
+
+  console.log('Socket.io server started')
 
   socketServer.on('connection', (socket) => {
     console.log('User successfully connected to socket!')
@@ -129,7 +130,7 @@ export default defineNitroPlugin((nitroApp) => {
           roomUsers[projectId][user].voteValue = undefined
         }
 
-        socketServer.to(projectId).emit(SocketEvent.startNewVoting, { usersInRoomNextVotingState: roomUsers[projectId]} )
+        socketServer.to(projectId).emit(SocketEvent.startNewVoting, { usersInRoomNextVotingState: roomUsers[projectId] })
       }
 
     })
