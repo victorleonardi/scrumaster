@@ -40,7 +40,7 @@ export default defineNitroPlugin((nitroApp) => {
   }
 
   console.log('Socket.io server port:', useRuntimeConfig().public.socketPort)
-  console.log('socket.io.public url'useRuntimeConfig().public.url)
+  console.log('socket.io.public url', useRuntimeConfig().public.url)
 
 
   const socketServer = new Server(
