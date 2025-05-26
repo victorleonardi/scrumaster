@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      socketPort: 3002,
+      socketPort: 3000,
       url: process.env.URL || 'http://localhost'
     },
     db: {

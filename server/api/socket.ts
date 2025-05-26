@@ -1,4 +1,5 @@
-import { Server } from "socket.io";
+import type { H3Event } from "h3";
+import { Server, ServerOptions } from "socket.io";
 import { SocketEvent } from "~/utils/SocketEvent";
 
 /*
@@ -33,27 +34,19 @@ interface RoomUsers {
 const roomUsers: RoomUsers = {}
 const roomCurrentVotingSectionId: RoomVotingSection = {}
 
-export default defineNitroPlugin((nitroApp) => {
-  if (!nitroApp.h3App) {
-    console.error('Nitro H3 app is not available')
-    return
-  }
 
-  console.log('Socket.io server port:', useRuntimeConfig().public.socketPort)
-  console.log('socket.io.public url', useRuntimeConfig().public.url)
+const options: Partial<ServerOptions> = {
+  path: '/api/socket.io',
+  serveClient: false
+}
 
+export const io = new Server(options)
 
-  const socketServer = new Server(
-    useRuntimeConfig().public.socketPort, {
-    serveClient: false,
-    cors: {
-      origin: '*'
-    }
-  })
+export function initSocket(event: H3Event) {
+  //  @ts-ignore
+  io.attach(event.node.res.socket.server);
 
-  console.log('Socket.io server started')
-
-  socketServer.on('connection', (socket) => {
+  io.on('connection', (socket) => {
     console.log('User successfully connected to socket!')
 
     socket.on(SocketEvent.isReady, async (message: { projectId: string, userToken: string, isReady: boolean, voteValue?: number }) => {
@@ -69,7 +62,7 @@ export default defineNitroPlugin((nitroApp) => {
       if (Object.values(roomUsers[projectId]).every(user => user.ready)) {
         console.log('📨 All users are ready!')
         // Emit to ALL users in the room
-        socketServer.to(projectId).emit(SocketEvent.allReady, { usersInRoomReadyState: roomUsers[projectId] })
+        io.to(projectId).emit(SocketEvent.allReady, { usersInRoomReadyState: roomUsers[projectId] })
       }
     })
 
@@ -132,7 +125,7 @@ export default defineNitroPlugin((nitroApp) => {
           roomUsers[projectId][user].voteValue = undefined
         }
 
-        socketServer.to(projectId).emit(SocketEvent.startNewVoting, { usersInRoomNextVotingState: roomUsers[projectId] })
+        io.to(projectId).emit(SocketEvent.startNewVoting, { usersInRoomNextVotingState: roomUsers[projectId] })
       }
 
     })
@@ -154,10 +147,4 @@ export default defineNitroPlugin((nitroApp) => {
       console.log('disconnected')
     })
   })
-})
-
-/* Notes:
-  socket.emit() will only update the state on client side, updating for the sender only;
-  socketServer.emit() will update the state on client side and server side, updating for everyone without needing refresh;
-  socket.broadcast.emit() will update the state on client side and server side, updating for everyone except the sender;
-*/
+}
