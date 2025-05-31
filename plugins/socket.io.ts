@@ -4,7 +4,8 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig().public
 
   const socket = io(`${config.url}:${config.socketPort}`, {
-    autoConnect: false
+    autoConnect: false,
+    transports: ["websocket"],
   })
 
   socket.on("connect", () => {
@@ -14,7 +15,7 @@ export default defineNuxtPlugin(() => {
   socket.on("connect_error", (err) => {
     console.error("❌ Connection error:", err);
   });
-  
+
   return {
     provide: {
       io: socket
