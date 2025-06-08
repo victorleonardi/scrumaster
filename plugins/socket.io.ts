@@ -1,10 +1,14 @@
 import io from "socket.io-client";
 
 export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig().public
+  const config = useRuntimeConfig()
 
-  const socket = io(`${config.url}:${config.socketPort}`, {
+  console.log("Initializing socket.io client...");
+  console.log("WebSocket URL:", config.public.websocket.url);
+
+  const socket = io(config.public.websocket.url, {
     autoConnect: false,
+    path: '/socket.io',
     transports: ["websocket"],
   })
 
