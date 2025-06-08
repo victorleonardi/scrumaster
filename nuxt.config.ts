@@ -5,11 +5,14 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       socketPort: 3002,
-      url: process.env.URL || 'http://localhost'
+      url: process.env.URL ?? 'http://localhost',
+      websocket: {
+        url: process.env.WEBSOCKET_URL ?? 'http://localhost:3002',
+      }
     },
     db: {
       postgres: {
-        uri: process.env.POSTGRES_URI || 'postgresql://postgres:postgres@localhost:5432/postgres',
+        uri: process.env.POSTGRES_URI ?? 'postgresql://postgres:postgres@localhost:5432/postgres',
       }
     }
 
